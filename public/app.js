@@ -135,6 +135,15 @@ document.addEventListener('DOMContentLoaded', () => {
     cmdPresets: document.querySelectorAll('[data-cmd]'),
     btnClearTerminal: document.getElementById('btnClearTerminal'),
 
+    // AirPlay iPhone
+    airPlayStatusBadge: document.getElementById('airPlayStatusBadge'),
+    airPlayStatusTitle: document.getElementById('airPlayStatusTitle'),
+    airPlayStatusDesc: document.getElementById('airPlayStatusDesc'),
+    btnLaunchAirScreen: document.getElementById('btnLaunchAirScreen'),
+    textAirScreenAction: document.getElementById('textAirScreenAction'),
+    inputDirectUrl: document.getElementById('inputDirectUrl'),
+    btnSendDirectUrl: document.getElementById('btnSendDirectUrl'),
+
     // Guide Modal
     btnOpenGuide: document.getElementById('btnOpenGuide'),
     guideModal: document.getElementById('guideModal'),
@@ -321,6 +330,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (targetId === 'tab-adblock' && state.connectedDevice) {
         fetchAdblockStatus();
+      }
+      if (targetId === 'tab-airplay' && state.connectedDevice) {
+        checkAirPlayStatus();
       }
       if (targetId === 'tab-remote' && state.connectedDevice && !el.tvScreenImg.src) {
         takeScreenshot();
@@ -1228,6 +1240,83 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
+  // --- Soporte AirPlay iPhone & AirScreen ---
+  async function checkAirPlayStatus() {
+    if (!state.connectedDevice) {
+      if (el.airPlayStatusBadge) el.airPlayStatusBadge.innerText = 'Desconectado';
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/device/airplay/status');
+      const data = await res.json();
+      if (data.installed) {
+        if (el.airPlayStatusBadge) {
+          el.airPlayStatusBadge.innerText = 'Instalado & Listo';
+          el.airPlayStatusBadge.className = 'badge badge-leaf';
+        }
+        if (el.airPlayStatusTitle) el.airPlayStatusTitle.innerText = 'AirScreen está Instalado en tu Android TV';
+        if (el.airPlayStatusDesc) el.airPlayStatusDesc.innerText = 'Receptor AirPlay listo para recibir pantalla en vivo, música o videos desde tu iPhone.';
+        if (el.textAirScreenAction) el.textAirScreenAction.innerText = 'Iniciar AirScreen en TV';
+      } else {
+        if (el.airPlayStatusBadge) {
+          el.airPlayStatusBadge.innerText = 'No Instalado';
+          el.airPlayStatusBadge.className = 'badge badge-counter';
+        }
+        if (el.airPlayStatusTitle) el.airPlayStatusTitle.innerText = 'Receptor AirScreen no detectado';
+        if (el.airPlayStatusDesc) el.airPlayStatusDesc.innerText = 'Haz clic abajo para abrir la instalación oficial de Google Play Store directamente en tu TV.';
+        if (el.textAirScreenAction) el.textAirScreenAction.innerText = 'Instalar desde Play Store en TV';
+      }
+    } catch (e) {
+      console.warn('Error al verificar estado de AirPlay:', e);
+    }
+  }
+
+  if (el.btnLaunchAirScreen) {
+    el.btnLaunchAirScreen.addEventListener('click', async () => {
+      if (!state.connectedDevice) return showToast('Conecta tu Android TV primero', 'error');
+
+      showToast('Enviando comando a tu TV...', 'info');
+      try {
+        const res = await fetch('/api/device/airplay/setup', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message, 'success');
+          setTimeout(checkAirPlayStatus, 2000);
+        } else {
+          showToast(data.message || 'Error al ejecutar comando de AirPlay', 'error');
+        }
+      } catch (e) {
+        showToast('Error de conexión con el servidor', 'error');
+      }
+    });
+  }
+
+  if (el.btnSendDirectUrl) {
+    el.btnSendDirectUrl.addEventListener('click', async () => {
+      if (!state.connectedDevice) return showToast('Conecta tu Android TV primero', 'error');
+      const url = el.inputDirectUrl.value.trim();
+      if (!url) return showToast('Ingresa o pega un enlace primero', 'error');
+
+      try {
+        const res = await fetch('/api/device/open-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message, 'success');
+          el.inputDirectUrl.value = '';
+        } else {
+          showToast(data.message || 'No se pudo abrir el enlace', 'error');
+        }
+      } catch (e) {
+        showToast('Error de conexión', 'error');
+      }
+    });
+  }
 
   // --- Modal de Guía ---
   el.btnOpenGuide.addEventListener('click', () => el.guideModal.classList.remove('hidden'));

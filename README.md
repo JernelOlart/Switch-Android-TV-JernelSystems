@@ -53,7 +53,14 @@ Herramienta avanzada de auditoría, escaneo de red Wi-Fi, optimización y modifi
    - Teclado virtual directo para escribir texto largo en la TV (búsquedas, contraseñas, URLs).
    - Captura de pantalla de la TV en tiempo real con refresco automático opcional.
 
-6. **Terminal Shell ADB Integrada**:
+6. **Receptor AirPlay para iPhone, iPad & Mac**:
+   - Soporte nativo para duplicar pantalla (Screen Mirroring) desde el Centro de Control de iOS a 60 fps.
+   - Envío de video a pantalla completa desde Safari o navegador web.
+   - Transmisión de música de alta fidelidad desde Apple Music, Spotify o YouTube Music hacia los altavoces de la TV.
+   - Lanzador directo de enlaces web y videos a la TV mediante Deep Linking.
+   - Activación e instalación en 1-clic del receptor AirScreen desde Google Play Store.
+
+7. **Terminal Shell ADB Integrada**:
    - Consola web interactiva con comandos directos (`getprop`, `df -h`, `top`, `uptime`, etc.) e historial con teclas flecha.
 
 ---
@@ -82,6 +89,7 @@ Herramienta avanzada de auditoría, escaneo de red Wi-Fi, optimización y modifi
    node cli.js scan                 # Escanear red Wi-Fi
    node cli.js connect <IP>         # Conectar con la TV
    node cli.js adblock on adguard   # Activar bloqueo de anuncios
+   node cli.js airplay              # Iniciar o instalar receptor AirPlay para iPhone
    node cli.js smarttube            # Instalar YouTube Sin Anuncios
    node cli.js tweaks               # Aplicar optimizaciones
    ```

@@ -133,6 +133,17 @@ async function main() {
       break;
     }
 
+    case 'airplay': {
+      console.log('[*] Configurando receptor AirPlay en la TV...');
+      const res = await adb.launchOrInstallAirScreen();
+      if (res.success) {
+        console.log(`\x1b[32m[OK] ${res.message}\x1b[0m`);
+      } else {
+        console.error(`\x1b[31m[ERROR] ${res.message}\x1b[0m`);
+      }
+      break;
+    }
+
     case 'web':
     case 'start': {
       require('./server');
@@ -145,6 +156,7 @@ async function main() {
   node cli.js scan                 -> Escanear la subred Wi-Fi
   node cli.js connect <ip>         -> Conectar con la Android TV por ADB (puerto 5555)
   node cli.js adblock [on|off]     -> Activar/Desactivar AdGuard DNS en todo el sistema
+  node cli.js airplay              -> Iniciar o instalar receptor AirPlay para iPhone
   node cli.js smarttube            -> Descargar e instalar YouTube Sin Anuncios (SmartTube)
   node cli.js tweaks               -> Aplicar tweaks de rendimiento (0.5x animaciones, etc.)
   node cli.js debloat              -> Auditar bloatware del sistema

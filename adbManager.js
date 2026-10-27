@@ -518,6 +518,59 @@ class AdbManager {
       downloadFile(targetApp.url, tempPath);
     });
   }
+
+  // --- AirPlay / AirScreen Soporte ---
+  async checkAirPlayStatus(target = null) {
+    const dev = target || this.connectedDevice;
+    if (!dev) return { success: false, installed: false, message: 'Dispositivo no conectado' };
+
+    const res = await this.shell('pm list packages com.ionitech.airscreen', dev);
+    const installed = (res.stdout || '').includes('package:com.ionitech.airscreen');
+    return {
+      success: true,
+      installed,
+      packageName: 'com.ionitech.airscreen',
+      message: installed ? 'AirScreen está instalado en la TV' : 'AirScreen no está instalado aún'
+    };
+  }
+
+  async launchOrInstallAirScreen(target = null) {
+    const dev = target || this.connectedDevice;
+    if (!dev) return { success: false, message: 'Dispositivo no conectado' };
+
+    const status = await this.checkAirPlayStatus(dev);
+    if (status.installed) {
+      // Iniciar AirScreen en la TV
+      const launch = await this.shell('monkey -p com.ionitech.airscreen -c android.intent.category.LAUNCHER 1', dev);
+      return {
+        success: launch.success,
+        action: 'launched',
+        message: '¡AirScreen iniciado en tu Android TV! Ya puedes conectar desde tu iPhone.'
+      };
+    } else {
+      // Abrir Google Play Store directamente en la página de AirScreen en la TV
+      const openStore = await this.shell('am start -a android.intent.action.VIEW -d "market://details?id=com.ionitech.airscreen"', dev);
+      return {
+        success: openStore.success,
+        action: 'store_opened',
+        message: 'Se ha abierto la descarga de AirScreen en la pantalla de tu TV. Pulsa "Instalar" con tu mando.'
+      };
+    }
+  }
+
+  async openUrlOnTv(url, target = null) {
+    const dev = target || this.connectedDevice;
+    if (!dev) return { success: false, message: 'Dispositivo no conectado' };
+    if (!url) return { success: false, message: 'URL no válida' };
+
+    // Escapar comillas dobles si las hay
+    const cleanUrl = url.replace(/"/g, '\\"');
+    const res = await this.shell(`am start -a android.intent.action.VIEW -d "${cleanUrl}"`, dev);
+    return {
+      success: res.success,
+      message: res.success ? `Enlace abierto en la TV: ${url}` : 'No se pudo abrir el enlace en la TV'
+    };
+  }
 }
 
 module.exports = new AdbManager();

@@ -318,6 +318,26 @@ app.post('/api/device/apps/install-curated', async (req, res) => {
   res.json(result);
 });
 
+// 26. AirPlay / AirScreen: Comprobar Estado
+app.get('/api/device/airplay/status', async (req, res) => {
+  const result = await adbManager.checkAirPlayStatus();
+  res.json(result);
+});
+
+// 27. AirPlay / AirScreen: Iniciar o Abrir Tienda
+app.post('/api/device/airplay/setup', async (req, res) => {
+  const result = await adbManager.launchOrInstallAirScreen();
+  res.json(result);
+});
+
+// 28. Enviar y Abrir Enlace / URL en la TV
+app.post('/api/device/open-url', async (req, res) => {
+  const { url } = req.body;
+  if (!url) return res.status(400).json({ error: 'URL requerida' });
+  const result = await adbManager.openUrlOnTv(url);
+  res.json(result);
+});
+
 // Iniciar Servidor
 server.listen(PORT, () => {
   console.log(`=======================================================`);
