@@ -321,9 +321,14 @@ app.post('/api/device/apps/install-curated', async (req, res) => {
 // Iniciar Servidor
 server.listen(PORT, () => {
   console.log(`=======================================================`);
-  console.log(`  JERNELSYSTEMS - ANDROID TV SPLOIT & NETWORK TOOL v1.0`);
+  console.log(`  ⚡ NEOSWITCH TV — ANDROID TV STUDIO v1.2`);
   console.log(`=======================================================`);
-  console.log(`  Servidor activo en: http://localhost:${PORT}`);
-  console.log(`  ADB Path detectado: ${adbManager.adbPath}`);
+  console.log(`  Colaboración:`);
+  console.log(`  • Jernel Systems:    https://www.jernelsystems.com`);
+  console.log(`  • NeoTech Solutions: https://neotechsolutions.mx/`);
+  console.log(`  • GitHub:            https://github.com/JernelOlart`);
+  console.log(`-------------------------------------------------------`);
+  console.log(`  Servidor activo en:  http://localhost:${PORT}`);
+  console.log(`  ADB Path detectado:  ${adbManager.adbPath}`);
   console.log(`=======================================================`);
 });

@@ -1674,3 +1674,64 @@ input:checked + .slider:before {
 .hidden {
   display: none !important;
 }
+
+/* ==========================================================================
+   Footer de Colaboración
+   ========================================================================== */
+.app-footer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-mist);
+}
+
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 13.5px;
+  color: var(--color-smoke);
+}
+
+.footer-brand {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.footer-collab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.collab-link {
+  color: var(--color-ink);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.collab-link:hover {
+  color: var(--color-electric-blue);
+  text-decoration: underline;
+}
+
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-snow);
+  border: 1px solid var(--color-mist);
+  padding: 4px 12px;
+  border-radius: var(--radius-tags);
+  font-family: var(--font-heading);
+  font-size: 12px;
+}
+.github-link:hover {
+  background: var(--color-midnight);
+  color: #fff;
+  border-color: var(--color-midnight);
+  text-decoration: none;
+}
+

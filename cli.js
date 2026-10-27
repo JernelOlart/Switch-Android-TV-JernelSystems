@@ -7,7 +7,9 @@ const command = args[0] || 'help';
 
 async function main() {
   console.log(`\x1b[36m=======================================================\x1b[0m`);
-  console.log(`\x1b[1m\x1b[35m  ⚡ JERNELSYSTEMS - ANDROID TV SPLOIT CLI v1.0\x1b[0m`);
+  console.log(`\x1b[1m\x1b[35m  ⚡ NEOSWITCH TV — ANDROID TV STUDIO CLI v1.2\x1b[0m`);
+  console.log(`  Colaboración: Jernel Systems & NeoTech Solutions`);
+  console.log(`  GitHub: https://github.com/JernelOlart`);
   console.log(`\x1b[36m=======================================================\x1b[0m`);
   console.log(`ADB Binary: ${adb.adbPath}\n`);
 

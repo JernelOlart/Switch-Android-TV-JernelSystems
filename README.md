@@ -1,6 +1,16 @@
-# ⚡ JernelSystems - Android TV Sploit & Network Debugger
+# ⚡ NeoSwitch TV — Android TV Studio
 
-Herramienta avanzada de auditoría, escaneo de red Wi-Fi y modificación de sistema para dispositivos **Android TV**, **Google TV**, **Chromecast con Google TV** y **Fire TV**.
+Herramienta avanzada de auditoría, escaneo de red Wi-Fi, optimización y modificación de sistema para dispositivos **Android TV**, **Google TV**, **Chromecast con Google TV** y **Fire TV**.
+
+---
+
+## 🤝 Colaboración & Créditos
+
+**NeoSwitch TV** es un proyecto desarrollado por [**@JernelOlart**](https://github.com/JernelOlart) en colaboración estratégica entre:
+
+- 🌐 [**Jernel Systems**](https://www.jernelsystems.com)
+- 🚀 [**NeoTech Solutions**](https://neotechsolutions.mx/)
+- 💻 Repositorio & GitHub: [https://github.com/JernelOlart](https://github.com/JernelOlart)
 
 ---
 
@@ -13,7 +23,14 @@ Herramienta avanzada de auditoría, escaneo de red Wi-Fi y modificación de sist
    - Conexión directa en 1-clic con la TV detectada.
    - Soporte para **Emparejamiento Inalámbrico** (Pairing Code & Port para Android 11+).
 
-2. **Modificaciones de Sistema & Tweaks de Rendimiento**:
+2. **Bloqueador de Anuncios y Privacidad (A Nivel de Sistema)**:
+   - **DNS Privado DoT**: Filtrado de publicidad, popups, banners y telemetría en **todas las apps y juegos** con 1-clic (AdGuard DNS, AdGuard Familiar, Mullvad AdBlock o DNS propio como NextDNS/Pi-hole).
+   - **Bloqueo de Anuncios en Pantalla de Inicio**: Deshabilita trailers autoplay y filas de publicidad patrocinada en Android TV / Google TV Home (`com.google.android.tvrecommendations`).
+   - **Instalador de YouTube Sin Anuncios**: Descarga e instalación asistida en 1-clic de **SmartTube** oficial (sin anuncios, con SponsorBlock y soporte 4K/60fps/HDR).
+   - **Launcher Alternativo**: Instalador directo de **Projectivy Launcher** para una interfaz minimalista, veloz y sin publicidad.
+   - **Límite de Procesos en Segundo Plano**: Optimización de memoria RAM para TVs de 1GB/2GB.
+
+3. **Modificaciones de Sistema & Tweaks de Rendimiento**:
    - **Velocidad de Animaciones**: Aceleración de interfaz a `0.5x` o `0x` (instantáneo) para eliminar retrasos de menú.
    - **Densidad de Pantalla (DPI)**: Personalización o presets (`240`, `280`, `320`, `400` DPI).
    - **Resolución Forzada (wm size)**: Modificación forzada a 1080p, 4K UHD o 720p.
@@ -21,7 +38,7 @@ Herramienta avanzada de auditoría, escaneo de red Wi-Fi y modificación de sist
    - **Limpieza Masiva de Caché**: Ejecución de `pm trim-caches 4096M` para recuperar espacio y fluidez.
    - **Reinicio Remoto**: Reinicio normal o arranque en modo Recovery.
 
-3. **Debloater Inteligente y Gestor de Apps**:
+4. **Debloater Inteligente y Gestor de Apps**:
    - Lista todas las aplicaciones (Sistema, Usuario, Deshabilitadas).
    - Clasificación automática de bloatware común (telemetría de Google, apps de streaming promocionales, apps OEM).
    - Congelar / Deshabilitar paquetes (`pm disable-user --user 0`) de forma segura y reversible.
@@ -29,14 +46,15 @@ Herramienta avanzada de auditoría, escaneo de red Wi-Fi y modificación de sist
    - Forzar detención (`am force-stop`) y limpiar datos (`pm clear`).
    - **Instalador de APKs**: Drag & Drop directo en el navegador web hacia la TV.
 
-4. **Control Remoto Digital y Captura de Pantalla en Directo**:
-   - D-Pad interactivo táctil (Arriba, Abajo, Izquierda, Derecha, OK).
+5. **Control Remoto Digital y Captura de Pantalla en Directo**:
+   - Mando digital interactivo con diseño ergonómico y minimalista.
+   - D-Pad (Arriba, Abajo, Izquierda, Derecha, OK).
    - Teclas de navegación: Atrás, Inicio, Menú, Volumen +, Volumen -, Silencio, Power.
    - Teclado virtual directo para escribir texto largo en la TV (búsquedas, contraseñas, URLs).
-   - Streaming / captura de pantalla en tiempo real con refresco automático cada 3s.
+   - Captura de pantalla de la TV en tiempo real con refresco automático opcional.
 
-5. **Terminal Shell ADB Integrada**:
-   - Ejecución de comandos `adb shell` con salida formateada en tiempo real e historial navegable con flechas.
+6. **Terminal Shell ADB Integrada**:
+   - Consola web interactiva con comandos directos (`getprop`, `df -h`, `top`, `uptime`, etc.) e historial con teclas flecha.
 
 ---
 
@@ -61,9 +79,11 @@ Herramienta avanzada de auditoría, escaneo de red Wi-Fi y modificación de sist
 
 3. O vía CLI de consola:
    ```bash
-   node cli.js scan           # Escanear red Wi-Fi
-   node cli.js connect <IP>   # Conectar con la TV
-   node cli.js tweaks         # Aplicar optimizaciones
+   node cli.js scan                 # Escanear red Wi-Fi
+   node cli.js connect <IP>         # Conectar con la TV
+   node cli.js adblock on adguard   # Activar bloqueo de anuncios
+   node cli.js smarttube            # Instalar YouTube Sin Anuncios
+   node cli.js tweaks               # Aplicar optimizaciones
    ```
 
 ---
@@ -85,8 +105,8 @@ Herramienta avanzada de auditoría, escaneo de red Wi-Fi y modificación de sist
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
+## 🛠️ Tecnologías y Diseño
 
-- **Backend**: Node.js, Express, WebSocket (`ws`), Multer, ADB Bridge.
-- **Frontend**: HTML5 Semántico, Vanilla CSS con estética Cyberpunk/Dark UI, Vanilla JS reactivo y animaciones fluidas con WebSocket bidireccional.
+- **Arquitectura**: Node.js, Express, WebSocket (`ws`), Multer, ADB Bridge.
+- **Frontend**: Sistema de diseño basado en `DESIGN.md` (*Acctual — Paper invoice on frosted glass*), Vanilla CSS con tokens de alta gama, tipografía Outfit e Inter, componentes pill-shaped y micro-interacciones fluidas.
 - **Compatibilidad**: macOS, Linux y Windows con Node.js y ADB.

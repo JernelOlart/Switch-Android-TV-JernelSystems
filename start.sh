@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# JernelSystems - Android TV Sploit & Network Debugger Launcher
+# NeoSwitch TV — Android TV Studio Launcher
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
 echo "======================================================="
-echo "  ⚡ JERNELSYSTEMS - ANDROID TV SPLOIT // NETWORK TOOL"
+echo "  ⚡ NEOSWITCH TV // ANDROID TV STUDIO"
+echo "  Colaboración: Jernel Systems & NeoTech Solutions"
+echo "  GitHub: https://github.com/JernelOlart"
 echo "======================================================="
 
 # Verificar e instalar dependencias si faltan

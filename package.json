@@ -1,21 +1,23 @@
 {
-  "name": "jernel-android-tv-sploit",
-  "version": "1.0.0",
-  "description": "Herramienta avanzada de auditoría, escaneo de red y modificación para Android TV y Google TV",
+  "name": "neoswitch-tv",
+  "version": "1.2.0",
+  "description": "NeoSwitch TV — Herramienta avanzada de auditoría, escaneo de red y modificación para Android TV y Google TV",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js"
   },
   "keywords": [
+    "neoswitch-tv",
     "android-tv",
     "adb",
     "network-debugger",
-    "sploit",
     "tweaks",
+    "adblock",
     "debloater"
   ],
-  "author": "JernelSystems",
+  "author": "JernelOlart (Jernel Systems & NeoTech Solutions)",
+  "homepage": "https://github.com/JernelOlart",
   "license": "MIT",
   "dependencies": {
     "express": "^4.21.2",
