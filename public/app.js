@@ -400,7 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
       <div class="dev-right-actions">
         <button class="btn btn-sm ${isAdb ? 'btn-primary' : 'btn-cyan'} btn-connect-dev" data-ip="${dev.ip}">
-          ${isAdb ? '⚡ Conectar 1-Clic' : 'Probar Conexión (5555)'}
+          ${isAdb ? 'Conectar' : 'Probar Conexión'}
         </button>
       </div>
     `;

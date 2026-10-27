@@ -3,43 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JernelSystems // Android TV Sploit & Network Debugger</title>
+  <title>JernelSystems — Android TV Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Fondo con rejilla cibernética y resplandor -->
-  <div class="cyber-grid"></div>
-  <div class="glow-orb orb-1"></div>
-  <div class="glow-orb orb-2"></div>
-
-  <!-- Header Superior -->
-  <header class="app-header">
-    <div class="header-left">
-      <div class="logo-badge">
-        <span class="logo-icon">⚡</span>
-        <div class="logo-titles">
-          <span class="brand-sub">JERNEL SYSTEMS</span>
-          <span class="brand-main">ANDROID TV SPLOIT</span>
+  <!-- Header Flotante Pill-Shaped -->
+  <header class="app-header-container">
+    <div class="app-header">
+      <div class="header-left">
+        <div class="logo-mark">
+          <span class="logo-arrow">→</span>
+          <div class="logo-text">
+            <span class="brand-sub">JERNEL</span>
+            <span class="brand-main">Android TV Studio</span>
+          </div>
         </div>
+        <span class="eyebrow-tag">v1.2 Studio</span>
       </div>
-      <div class="chip version-chip">v1.0 NEON-CORE</div>
-    </div>
 
-    <!-- Status Bar Central / Derecha -->
-    <div class="header-right">
-      <div class="connection-status-pill" id="globalStatusPill">
-        <span class="status-dot disconnected" id="globalStatusDot"></span>
-        <span class="status-label" id="globalStatusText">Sin dispositivo conectado</span>
+      <!-- Status Bar Central / Derecha -->
+      <div class="header-right">
+        <div class="connection-status-pill" id="globalStatusPill">
+          <span class="status-dot disconnected" id="globalStatusDot"></span>
+          <span class="status-label" id="globalStatusText">Sin TV conectada</span>
+        </div>
+        <button class="btn btn-outline" id="btnOpenGuide" title="Guía de activación ADB">
+          <span>Guía de Conexión</span>
+        </button>
+        <button class="btn btn-danger-outline hidden" id="btnGlobalDisconnect">
+          <span>Desconectar</span>
+        </button>
       </div>
-      <button class="btn btn-ghost" id="btnOpenGuide" title="Guía de activación ADB">
-        <span>📖 Guía TV</span>
-      </button>
-      <button class="btn btn-ghost btn-danger-ghost hidden" id="btnGlobalDisconnect">
-        <span>Desconectar</span>
-      </button>
     </div>
   </header>
 
@@ -55,7 +52,7 @@
           <p>Usa el radar de red Wi-Fi para auto-detectar tu TV o ingresa la IP manualmente con puerto 5555.</p>
         </div>
         <button class="btn btn-primary" id="btnFocusScanner">
-          <span>⚡ Escanear Red Wi-Fi</span>
+          <span>Escanear Red Wi-Fi</span>
         </button>
       </div>
 
@@ -90,8 +87,8 @@
             <span class="metric-val" id="heroStayOnVal">OFF</span>
           </div>
           <div class="hero-actions">
-            <button class="btn btn-sm btn-ghost" id="btnRefreshDeviceInfo" title="Refrescar info">🔄 Actualizar</button>
-            <button class="btn btn-sm btn-danger-ghost" id="btnHeroDisconnect">Desconectar</button>
+            <button class="btn btn-sm btn-outline" id="btnRefreshDeviceInfo" title="Refrescar info">Actualizar</button>
+            <button class="btn btn-sm btn-danger-outline" id="btnHeroDisconnect">Desconectar</button>
           </div>
         </div>
       </div>
@@ -100,27 +97,21 @@
     <!-- Pestañas de Navegación -->
     <nav class="nav-tabs">
       <button class="tab-btn active" data-tab="tab-scanner">
-        <span class="tab-icon">📡</span>
-        <span class="tab-text">Radar Wi-Fi & Conexión</span>
+        <span class="tab-text">Radar Wi-Fi</span>
       </button>
       <button class="tab-btn" data-tab="tab-tweaks" id="tabBtnTweaks">
-        <span class="tab-icon">⚡</span>
-        <span class="tab-text">Modificaciones & Tweaks</span>
+        <span class="tab-text">Modificaciones</span>
       </button>
       <button class="tab-btn" data-tab="tab-debloat" id="tabBtnDebloat">
-        <span class="tab-icon">🧹</span>
         <span class="tab-text">Debloater & Apps</span>
       </button>
       <button class="tab-btn" data-tab="tab-adblock" id="tabBtnAdblock">
-        <span class="tab-icon">🛡️</span>
         <span class="tab-text">Bloqueador de Anuncios</span>
       </button>
       <button class="tab-btn" data-tab="tab-remote" id="tabBtnRemote">
-        <span class="tab-icon">🎮</span>
-        <span class="tab-text">Control Remoto & Screen</span>
+        <span class="tab-text">Control Remoto</span>
       </button>
       <button class="tab-btn" data-tab="tab-shell" id="tabBtnShell">
-        <span class="tab-icon">💻</span>
         <span class="tab-text">Terminal Shell ADB</span>
       </button>
     </nav>
@@ -134,20 +125,20 @@
         <!-- Columna Izquierda: Panel de Control del Escáner y Conexión Manual -->
         <div class="panel-box scanner-controls-panel">
           <div class="panel-title-bar">
-            <h3><span>🌐</span> Escáner de Red Local</h3>
+            <h3>Escáner de Red Local</h3>
             <span class="badge badge-glow" id="netSubnetLabel">Subred: 192.168.6.0/24</span>
           </div>
           
           <p class="panel-desc">
-            Sondea automáticamente tu red local buscando dispositivos con puertos ADB (5555), Google Cast (8008/8009) y Android TV Remote.
+            Sondea tu red local buscando dispositivos con puertos ADB (5555), Google Cast (8008/8009) y Android TV Remote.
           </p>
 
           <div class="scanner-actions-row">
             <button class="btn btn-primary btn-large" id="btnStartScan">
               <span class="btn-spinner hidden" id="scanSpinner"></span>
-              <span id="scanBtnText">🚀 Iniciar Escaneo Completo</span>
+              <span id="scanBtnText">Iniciar Escaneo de Red</span>
             </button>
-            <button class="btn btn-secondary hidden" id="btnStopScan">Detener</button>
+            <button class="btn btn-outline hidden" id="btnStopScan">Detener</button>
           </div>
 
           <!-- Barra de Progreso del Escaneo -->
