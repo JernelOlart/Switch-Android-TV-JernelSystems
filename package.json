@@ -1,0 +1,25 @@
+{
+  "name": "jernel-android-tv-sploit",
+  "version": "1.0.0",
+  "description": "Herramienta avanzada de auditoría, escaneo de red y modificación para Android TV y Google TV",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "android-tv",
+    "adb",
+    "network-debugger",
+    "sploit",
+    "tweaks",
+    "debloater"
+  ],
+  "author": "JernelSystems",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.1",
+    "ws": "^8.18.0"
+  }
+}

@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JernelSystems // Android TV Sploit & Network Debugger</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Fondo con rejilla cibernética y resplandor -->
+  <div class="cyber-grid"></div>
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+
+  <!-- Header Superior -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-badge">
+        <span class="logo-icon">⚡</span>
+        <div class="logo-titles">
+          <span class="brand-sub">JERNEL SYSTEMS</span>
+          <span class="brand-main">ANDROID TV SPLOIT</span>
+        </div>
+      </div>
+      <div class="chip version-chip">v1.0 NEON-CORE</div>
+    </div>
+
+    <!-- Status Bar Central / Derecha -->
+    <div class="header-right">
+      <div class="connection-status-pill" id="globalStatusPill">
+        <span class="status-dot disconnected" id="globalStatusDot"></span>
+        <span class="status-label" id="globalStatusText">Sin dispositivo conectado</span>
+      </div>
+      <button class="btn btn-ghost" id="btnOpenGuide" title="Guía de activación ADB">
+        <span>📖 Guía TV</span>
+      </button>
+      <button class="btn btn-ghost btn-danger-ghost hidden" id="btnGlobalDisconnect">
+        <span>Desconectar</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal -->
+  <main class="main-container">
+    
+    <!-- Barra lateral / Banner de Dispositivo Actual -->
+    <section class="device-hero-card" id="deviceHeroCard">
+      <div class="hero-inactive-view" id="heroInactiveView">
+        <div class="radar-mini-icon">📡</div>
+        <div class="hero-inactive-info">
+          <h3>No hay ninguna Android TV vinculada</h3>
+          <p>Usa el radar de red Wi-Fi para auto-detectar tu TV o ingresa la IP manualmente con puerto 5555.</p>
+        </div>
+        <button class="btn btn-primary" id="btnFocusScanner">
+          <span>⚡ Escanear Red Wi-Fi</span>
+        </button>
+      </div>
+
+      <div class="hero-active-view hidden" id="heroActiveView">
+        <div class="device-specs-left">
+          <div class="tv-avatar">📺</div>
+          <div class="device-text-meta">
+            <div class="device-model-row">
+              <h2 id="heroModelName">Android TV Device</h2>
+              <span class="badge badge-cyan" id="heroBrand">GOOGLE</span>
+              <span class="badge badge-purple" id="heroIpTarget">192.168.6.X:5555</span>
+            </div>
+            <div class="device-submeta">
+              <span>Android <strong id="heroAndroidVer">12</strong></span>
+              <span class="dot-sep">•</span>
+              <span>Res: <strong id="heroResolution">1920x1080</strong></span>
+              <span class="dot-sep">•</span>
+              <span>DPI: <strong id="heroDensity">320</strong></span>
+              <span class="dot-sep">•</span>
+              <span>CPU: <strong id="heroCpu">arm64-v8a</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="device-specs-right">
+          <div class="metric-box">
+            <span class="metric-title">Animaciones</span>
+            <span class="metric-val" id="heroAnimVal">1.0x</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-title">Pantalla Fija</span>
+            <span class="metric-val" id="heroStayOnVal">OFF</span>
+          </div>
+          <div class="hero-actions">
+            <button class="btn btn-sm btn-ghost" id="btnRefreshDeviceInfo" title="Refrescar info">🔄 Actualizar</button>
+            <button class="btn btn-sm btn-danger-ghost" id="btnHeroDisconnect">Desconectar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pestañas de Navegación -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" data-tab="tab-scanner">
+        <span class="tab-icon">📡</span>
+        <span class="tab-text">Radar Wi-Fi & Conexión</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-tweaks" id="tabBtnTweaks">
+        <span class="tab-icon">⚡</span>
+        <span class="tab-text">Modificaciones & Tweaks</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-debloat" id="tabBtnDebloat">
+        <span class="tab-icon">🧹</span>
+        <span class="tab-text">Debloater & Apps</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-remote" id="tabBtnRemote">
+        <span class="tab-icon">🎮</span>
+        <span class="tab-text">Control Remoto & Screen</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-shell" id="tabBtnShell">
+        <span class="tab-icon">💻</span>
+        <span class="tab-text">Terminal Shell ADB</span>
+      </button>
+    </nav>
+
+    <!-- ============================================== -->
+    <!-- TAB 1: RADAR WI-FI & CONEXIÓN                  -->
+    <!-- ============================================== -->
+    <section class="tab-content active" id="tab-scanner">
+      <div class="scanner-layout">
+        
+        <!-- Columna Izquierda: Panel de Control del Escáner y Conexión Manual -->
+        <div class="panel-box scanner-controls-panel">
+          <div class="panel-title-bar">
+            <h3><span>🌐</span> Escáner de Red Local</h3>
+            <span class="badge badge-glow" id="netSubnetLabel">Subred: 192.168.6.0/24</span>
+          </div>
+          
+          <p class="panel-desc">
+            Sondea automáticamente tu red local buscando dispositivos con puertos ADB (5555), Google Cast (8008/8009) y Android TV Remote.
+          </p>
+
+          <div class="scanner-actions-row">
+            <button class="btn btn-primary btn-large" id="btnStartScan">
+              <span class="btn-spinner hidden" id="scanSpinner"></span>
+              <span id="scanBtnText">🚀 Iniciar Escaneo Completo</span>
+            </button>
+            <button class="btn btn-secondary hidden" id="btnStopScan">Detener</button>
+          </div>
+
+          <!-- Barra de Progreso del Escaneo -->
+          <div class="scan-progress-wrapper hidden" id="scanProgressBox">
+            <div class="progress-info-row">
+              <span id="scanCurrentTarget">Escaneando...</span>
+              <span id="scanPercentLabel">0%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="scanProgressFill" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <div class="divider"><span>O CONEXIÓN DIRECTA</span></div>
+
+          <!-- Conexión Manual por IP -->
+          <div class="manual-connect-form">
+            <label class="form-label">Dirección IP de la TV</label>
+            <div class="input-with-button">
+              <input type="text" class="cyber-input" id="inputManualIp" placeholder="Ej: 192.168.6.25" />
+              <input type="number" class="cyber-input input-port" id="inputManualPort" value="5555" />
+              <button class="btn btn-cyan" id="btnConnectManual">Conectar</button>
+            </div>
+          </div>
+
+          <!-- Emparejamiento Inalámbrico Android 11+ -->
+          <div class="pairing-box">
+            <div class="pairing-header" id="togglePairingSection">
+              <span>🔐 Emparejamiento Inalámbrico (Android 11+)</span>
+              <span class="accordion-arrow">▼</span>
+            </div>
+            <div class="pairing-body collapsed" id="pairingBody">
+              <p class="hint-text">
+                En tu TV: Ajustes > Opciones de desarrollador > Depuración inalámbrica > "Emparejar dispositivo con código".
+              </p>
+              <div class="pairing-grid">
+                <div>
+                  <label class="form-label">IP de la TV</label>
+                  <input type="text" class="cyber-input" id="inputPairIp" placeholder="192.168.6.X">
+                </div>
+                <div>
+                  <label class="form-label">Puerto de Pair</label>
+                  <input type="number" class="cyber-input" id="inputPairPort" placeholder="38445">
+                </div>
+                <div class="full-col">
+                  <label class="form-label">Código de 6 dígitos</label>
+                  <input type="text" class="cyber-input" id="inputPairCode" placeholder="123456" maxlength="6">
+                </div>
+              </div>
+              <button class="btn btn-purple btn-full" id="btnExecutePair">Emparejar TV</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Dispositivos Descubiertos en el Radar -->
+        <div class="panel-box scanner-results-panel">
+          <div class="panel-title-bar">
+            <h3><span>📡</span> Dispositivos Detectados en Wi-Fi</h3>
+            <span class="badge badge-counter" id="devicesCountBadge">0 Encontrados</span>
+          </div>
+
+          <div class="radar-visual-zone" id="radarZone">
+            <div class="radar-circle circle-1"></div>
+            <div class="radar-circle circle-2"></div>
+            <div class="radar-circle circle-3"></div>
+            <div class="radar-sweep" id="radarSweep"></div>
+            <div class="radar-center-text" id="radarCenterText">Presiona "Iniciar Escaneo"</div>
+          </div>
+
+          <!-- Lista de Tarjetas de Dispositivos -->
+          <div class="discovered-devices-list" id="discoveredDevicesList">
+            <!-- Template dinámico -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB 2: MODIFICACIONES & TWEAKS DEL SISTEMA     -->
+    <!-- ============================================== -->
+    <section class="tab-content" id="tab-tweaks">
+      <div class="tweaks-grid">
+        
+        <!-- Tarjeta 1: Optimización de Animaciones -->
+        <div class="tweak-card">
+          <div class="tweak-card-header">
+            <div class="tweak-icon">⚡</div>
+            <div>
+              <h4>Velocidad de Animaciones del Sistema</h4>
+              <p>Elimina el lag de los menús reduciendo o apagando las animaciones de Android TV.</p>
+            </div>
+          </div>
+          <div class="tweak-card-body">
+            <div class="button-toggle-group">
+              <button class="btn btn-toggle" data-anim="0">0x (Instantáneo)</button>
+              <button class="btn btn-toggle active" data-anim="0.5">0.5x (Recomendado)</button>
+              <button class="btn btn-toggle" data-anim="1.0">1.0x (Original)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 2: Densidad de Pantalla (DPI) -->
+        <div class="tweak-card">
+          <div class="tweak-card-header">
+            <div class="tweak-icon">📐</div>
+            <div>
+              <h4>Densidad de Pantalla (DPI)</h4>
+              <p>Aumenta o reduce el tamaño de la interfaz y botones de tu TV (wm density).</p>
+            </div>
+          </div>
+          <div class="tweak-card-body">
+            <div class="input-with-presets">
+              <div class="presets-row">
+                <button class="btn btn-xs btn-ghost-preset" data-dpi="240">240 DPI (Mini)</button>
+                <button class="btn btn-xs btn-ghost-preset" data-dpi="280">280 DPI</button>
+                <button class="btn btn-xs btn-ghost-preset" data-dpi="320">320 DPI (Estándar)</button>
+                <button class="btn btn-xs btn-ghost-preset" data-dpi="400">400 DPI</button>
+              </div>
+              <div class="input-with-button">
+                <input type="number" class="cyber-input" id="inputCustomDpi" placeholder="DPI personalizado (ej. 280)">
+                <button class="btn btn-cyan" id="btnApplyDpi">Aplicar</button>
+                <button class="btn btn-ghost" id="btnResetDpi">Restablecer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 3: Resolución de Pantalla -->
+        <div class="tweak-card">
+          <div class="tweak-card-header">
+            <div class="tweak-icon">🖥️</div>
+            <div>
+              <h4>Resolución Forzada (wm size)</h4>
+              <p>Fuerza una resolución nativa si la TV está escalando incorrectamente la interfaz.</p>
+            </div>
+          </div>
+          <div class="tweak-card-body">
+            <div class="presets-row">
+              <button class="btn btn-xs btn-ghost-preset" data-res="1920x1080">1080p FHD</button>
+              <button class="btn btn-xs btn-ghost-preset" data-res="3840x2160">4K UHD</button>
+              <button class="btn btn-xs btn-ghost-preset" data-res="1280x720">720p HD</button>
+            </div>
+            <div class="input-with-button">
+              <input type="text" class="cyber-input" id="inputCustomRes" placeholder="Ancho x Alto (ej. 1920x1080)">
+              <button class="btn btn-cyan" id="btnApplyRes">Aplicar</button>
+              <button class="btn btn-ghost" id="btnResetRes">Restablecer</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 4: Pantalla Siempre Activa (Stay Awake) -->
+        <div class="tweak-card">
+          <div class="tweak-card-header">
+            <div class="tweak-icon">☕</div>
+            <div>
+              <h4>Pantalla Siempre Encendida</h4>
+              <p>Evita que la TV entre en modo reposo o screensaver automáticamente.</p>
+            </div>
+          </div>
+          <div class="tweak-card-body">
+            <div class="toggle-switch-wrapper">
+              <label class="switch">
+                <input type="checkbox" id="switchStayAwake">
+                <span class="slider round"></span>
+              </label>
+              <span class="switch-label" id="labelStayAwake">Inactivo</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 5: Limpieza de Caché y Memoria -->
+        <div class="tweak-card">
+          <div class="tweak-card-header">
+            <div class="tweak-icon">🧹</div>
+            <div>
+              <h4>Limpieza de Caché del Sistema</h4>
+              <p>Ejecuta <span class="code-tag">pm trim-caches</span> para liberar memoria y espacio en almacenamiento.</p>
+            </div>
+          </div>
+          <div class="tweak-card-body">
+            <button class="btn btn-purple" id="btnTrimCaches">
+              <span>🚀 Liberar Cachés (4GB Trim)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tarjeta 6: Reinicio de TV -->
+        <div class="tweak-card">
+          <div class="tweak-card-header">
+            <div class="tweak-icon">🔄</div>
+            <div>
+              <h4>Comandos de Reinicio Rápido</h4>
+              <p>Reinicia el dispositivo o arranca en modo de recuperación directamente.</p>
+            </div>
+          </div>
+          <div class="tweak-card-body">
+            <div class="dual-buttons">
+              <button class="btn btn-danger-ghost" id="btnRebootNormal">Reiniciar TV</button>
+              <button class="btn btn-danger-ghost" id="btnRebootRecovery">Modo Recovery</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB 3: DEBLOATER & GESTOR DE APLICACIONES      -->
+    <!-- ============================================== -->
+    <section class="tab-content" id="tab-debloat">
+      <div class="debloat-layout">
+        
+        <!-- Header de Acciones de Debloater -->
+        <div class="debloat-toolbar">
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="cyber-input search-input" id="inputSearchPackage" placeholder="Filtrar por nombre de paquete o app..." />
+          </div>
+
+          <div class="filter-pills">
+            <button class="filter-pill active" data-filter="all">Todas (<span id="countAll">0</span>)</button>
+            <button class="filter-pill pill-warn" data-filter="bloat">Bloatware Detectado (<span id="countBloat">0</span>)</button>
+            <button class="filter-pill" data-filter="disabled">Deshabilitadas (<span id="countDisabled">0</span>)</button>
+            <button class="filter-pill" data-filter="thirdparty">Instaladas (<span id="countThird">0</span>)</button>
+            <button class="filter-pill" data-filter="system">Sistema (<span id="countSystem">0</span>)</button>
+          </div>
+
+          <button class="btn btn-danger-ghost" id="btnAutoDebloat">
+            <span>🛡️ Deshabilitar Todo el Bloatware Seguro</span>
+          </button>
+        </div>
+
+        <!-- Zona de Instalación de APK (Drag & Drop) -->
+        <div class="apk-dropzone" id="apkDropZone">
+          <input type="file" id="apkFileInput" accept=".apk" class="hidden" />
+          <div class="dropzone-content">
+            <div class="dropzone-icon">📦</div>
+            <div>
+              <h4>Instalar APK en tu Android TV</h4>
+              <p>Arrastra y suelta tu archivo <strong>.APK</strong> aquí o haz clic para seleccionarlo.</p>
+            </div>
+            <button class="btn btn-sm btn-cyan" id="btnSelectApk">Seleccionar APK</button>
+          </div>
+          <div class="upload-progress-box hidden" id="uploadProgressBox">
+            <div class="progress-info-row">
+              <span id="uploadStatusText">Subiendo e instalando APK...</span>
+              <span id="uploadPercent">0%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="uploadProgressFill" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de Paquetes -->
+        <div class="packages-table-wrapper">
+          <div class="packages-loading" id="packagesLoading">
+            <div class="spinner"></div>
+            <span>Cargando lista de paquetes desde la TV...</span>
+          </div>
+
+          <div class="packages-list" id="packagesList">
+            <!-- Paquetes dinámicos -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB 4: CONTROL REMOTO VIRTUAL & SCREEN         -->
+    <!-- ============================================== -->
+    <section class="tab-content" id="tab-remote">
+      <div class="remote-screen-grid">
+        
+        <!-- Columna Izquierda: Control Remoto Físico Digital -->
+        <div class="panel-box remote-controller-box">
+          <div class="panel-title-bar">
+            <h3><span>🎮</span> Control Remoto D-Pad</h3>
+            <span class="badge badge-cyan">ADB Input</span>
+          </div>
+
+          <!-- Mando virtual D-Pad -->
+          <div class="dpad-container">
+            <button class="dpad-btn dpad-up" data-key="19" title="Arriba">▲</button>
+            <div class="dpad-mid-row">
+              <button class="dpad-btn dpad-left" data-key="21" title="Izquierda">◀</button>
+              <button class="dpad-btn dpad-center" data-key="66" title="OK / Seleccionar">OK</button>
+              <button class="dpad-btn dpad-right" data-key="22" title="Derecha">▶</button>
+            </div>
+            <button class="dpad-btn dpad-down" data-key="20" title="Abajo">▼</button>
+          </div>
+
+          <!-- Botones de Navegación del Sistema -->
+          <div class="remote-sys-buttons">
+            <button class="btn-remote-circle" data-key="4" title="Atrás (Back)">
+              <span>↩</span>
+              <small>ATRÁS</small>
+            </button>
+            <button class="btn-remote-circle" data-key="3" title="Inicio (Home)">
+              <span>⌂</span>
+              <small>HOME</small>
+            </button>
+            <button class="btn-remote-circle" data-key="82" title="Menú">
+              <span>≡</span>
+              <small>MENÚ</small>
+            </button>
+          </div>
+
+          <!-- Controles de Audio y Energía -->
+          <div class="remote-media-row">
+            <button class="btn btn-remote-action" data-key="25" title="Bajar Volumen">🔉 Vol -</button>
+            <button class="btn btn-remote-action" data-key="164" title="Silenciar">🔇 Mute</button>
+            <button class="btn btn-remote-action" data-key="24" title="Subir Volumen">🔊 Vol +</button>
+            <button class="btn btn-remote-action btn-danger-action" data-key="26" title="Encender / Apagar">⏻ Power</button>
+          </div>
+
+          <!-- Entrada de Texto / Teclado Virtual para la TV -->
+          <div class="remote-keyboard-box">
+            <label class="form-label">Escribir en la TV (URLs, Búsquedas, Passwords)</label>
+            <div class="input-with-button">
+              <input type="text" class="cyber-input" id="inputTvText" placeholder="Escribe el texto a enviar..." />
+              <button class="btn btn-cyan" id="btnSendTvText">Enviar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Captura de Pantalla en Vivo -->
+        <div class="panel-box screen-mirror-box">
+          <div class="panel-title-bar">
+            <h3><span>📺</span> Captura de Pantalla en Directo</h3>
+            <div class="screen-controls">
+              <label class="auto-refresh-check">
+                <input type="checkbox" id="checkAutoScreenshot">
+                <span>Auto-refresco (3s)</span>
+              </label>
+              <button class="btn btn-sm btn-cyan" id="btnTakeScreenshot">📸 Capturar</button>
+            </div>
+          </div>
+
+          <div class="tv-frame">
+            <div class="tv-screen-wrapper" id="tvScreenWrapper">
+              <div class="tv-screen-placeholder" id="tvScreenPlaceholder">
+                <span>Presiona "Capturar" para ver la pantalla actual de la TV</span>
+              </div>
+              <img id="tvScreenImg" class="tv-screen-img hidden" alt="Captura de Pantalla Android TV" />
+            </div>
+            <div class="tv-chin">
+              <span class="tv-logo-chin">JERNEL</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB 5: TERMINAL SHELL ADB INTERACTIVA          -->
+    <!-- ============================================== -->
+    <section class="tab-content" id="tab-shell">
+      <div class="panel-box terminal-panel">
+        <div class="panel-title-bar">
+          <h3><span>💻</span> Consola Shell ADB Interactiva</h3>
+          <div class="terminal-quick-cmds">
+            <button class="btn btn-xs btn-ghost-preset" data-cmd="getprop">getprop</button>
+            <button class="btn btn-xs btn-ghost-preset" data-cmd="df -h">df -h</button>
+            <button class="btn btn-xs btn-ghost-preset" data-cmd="top -n 1 -m 5">top</button>
+            <button class="btn btn-xs btn-ghost-preset" data-cmd="dumpsys battery">battery</button>
+            <button class="btn btn-xs btn-ghost-preset" data-cmd="uptime">uptime</button>
+            <button class="btn btn-xs btn-ghost-preset" id="btnClearTerminal">Limpiar</button>
+          </div>
+        </div>
+
+        <!-- Pantalla de la terminal -->
+        <div class="terminal-screen" id="terminalScreen">
+          <div class="terminal-line banner">JERNEL SYSTEMS // ANDROID TV ADB SHELL READY</div>
+          <div class="terminal-line info">Escribe comandos 'adb shell' directamente (ej: 'ls /sdcard', 'pm list packages', etc.)</div>
+        </div>
+
+        <!-- Input de la terminal -->
+        <div class="terminal-input-bar">
+          <span class="term-prompt">adb shell $</span>
+          <input type="text" class="terminal-input" id="terminalInput" placeholder="Introduce comando y pulsa Enter..." autocomplete="off" />
+          <button class="btn btn-cyan" id="btnSendShell">Ejecutar</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal de Guía Paso a Paso para Activar ADB en la TV -->
+  <div class="modal-overlay hidden" id="guideModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>📖 Cómo Activar la Depuración por Red en Android TV</h3>
+        <button class="modal-close-btn" id="btnCloseGuide">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="guide-steps">
+          <div class="guide-step">
+            <span class="step-num">1</span>
+            <div>
+              <strong>Habilitar Opciones de Desarrollador:</strong>
+              <p>En tu Android TV, ve a <em>Ajustes ⚙️ > Preferencias del dispositivo > Información</em> (o <em>Sistema > Acerca de</em> en Google TV).</p>
+              <p>Baja hasta <strong>"Número de compilación"</strong> y presiona el botón central del mando <strong>7 veces seguidas</strong> hasta ver: <em>"¡Ya eres un desarrollador!"</em>.</p>
+            </div>
+          </div>
+
+          <div class="guide-step">
+            <span class="step-num">2</span>
+            <div>
+              <strong>Activar Depuración USB y por Red:</strong>
+              <p>Vuelve al menú anterior y entra en el nuevo apartado <strong>"Opciones para desarrolladores"</strong>.</p>
+              <p>Activa la casilla <strong>"Depuración USB"</strong> y (si tu TV lo tiene) <strong>"Depuración por red"</strong>.</p>
+            </div>
+          </div>
+
+          <div class="guide-step">
+            <span class="step-num">3</span>
+            <div>
+              <strong>Ver la IP de tu TV y autorizar el equipo:</strong>
+              <p>Ve a <em>Ajustes > Red e Internet</em> y anota la dirección IP (por ejemplo <span class="code-tag">192.168.6.25</span>).</p>
+              <p>Cuando presiones "Conectar" desde este panel, <strong>aparecerá un aviso en la pantalla de tu TV</strong> diciendo <em>"¿Permitir depuración USB?"</em>. Marca la casilla <strong>"Permitir siempre desde este equipo"</strong> y pulsa <strong>Aceptar</strong> con tu mando a distancia.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btnGuideGotIt">¡Entendido! Volver al Panel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast de Notificaciones -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
