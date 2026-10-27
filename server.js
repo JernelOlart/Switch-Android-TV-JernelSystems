@@ -276,6 +276,48 @@ app.post('/api/device/shell', async (req, res) => {
   res.json(result);
 });
 
+// 21. Ad-Block: Estado General de Bloqueo
+app.get('/api/device/adblock/status', async (req, res) => {
+  try {
+    const dns = await adbManager.getPrivateDns();
+    const launcherAdsDisabled = await adbManager.getLauncherAdsStatus();
+    res.json({ dns, launcherAdsDisabled });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 22. Ad-Block: Configurar DNS Privado Anti-Anuncios
+app.post('/api/device/adblock/dns', async (req, res) => {
+  const { provider, customHost } = req.body;
+  if (!provider) return res.status(400).json({ error: 'Proveedor de DNS requerido' });
+  const result = await adbManager.setPrivateDns(provider, customHost);
+  res.json(result);
+});
+
+// 23. Ad-Block: Bloquear Recomendaciones y Anuncios del Home
+app.post('/api/device/adblock/launcher-ads', async (req, res) => {
+  const { disable } = req.body;
+  const result = await adbManager.toggleLauncherAds(disable !== false);
+  res.json(result);
+});
+
+// 24. Tweaks: Límite de Procesos en Segundo Plano (Optimización RAM)
+app.post('/api/device/tweaks/background-limit', async (req, res) => {
+  const { limit } = req.body;
+  if (limit === undefined) return res.status(400).json({ error: 'Límite requerido' });
+  const result = await adbManager.setBackgroundProcessLimit(limit);
+  res.json(result);
+});
+
+// 25. Instalación Asistida de Apps Curadas (SmartTube, Projectivy)
+app.post('/api/device/apps/install-curated', async (req, res) => {
+  const { appKey } = req.body;
+  if (!appKey) return res.status(400).json({ error: 'appKey requerida' });
+  const result = await adbManager.downloadAndInstallCuratedApp(appKey);
+  res.json(result);
+});
+
 // Iniciar Servidor
 server.listen(PORT, () => {
   console.log(`=======================================================`);

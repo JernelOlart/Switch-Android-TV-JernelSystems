@@ -111,6 +111,10 @@
         <span class="tab-icon">🧹</span>
         <span class="tab-text">Debloater & Apps</span>
       </button>
+      <button class="tab-btn" data-tab="tab-adblock" id="tabBtnAdblock">
+        <span class="tab-icon">🛡️</span>
+        <span class="tab-text">Bloqueador de Anuncios</span>
+      </button>
       <button class="tab-btn" data-tab="tab-remote" id="tabBtnRemote">
         <span class="tab-icon">🎮</span>
         <span class="tab-text">Control Remoto & Screen</span>
@@ -409,6 +413,165 @@
           <div class="packages-list" id="packagesList">
             <!-- Paquetes dinámicos -->
           </div>
+        </div>
+
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB AD-BLOCK: BLOQUEADOR DE PUBLICIDAD & PRIVACIDAD -->
+    <!-- ============================================== -->
+    <section class="tab-content" id="tab-adblock">
+      <div class="adblock-layout">
+        
+        <!-- Tarjeta Principal: DNS Privado Anti-Anuncios a Nivel de Sistema -->
+        <div class="panel-box adblock-hero-card">
+          <div class="adblock-hero-header">
+            <div class="adblock-shield-icon">🛡️</div>
+            <div>
+              <h3>DNS Privado Anti-Publicidad (Sistema Completo)</h3>
+              <p>Filtra anuncios, popups, banners y rastreadores de telemetría en <strong>todas las aplicaciones y juegos</strong> de tu Android TV sin necesidad de instalar VPNs que ralenticen tu conexión.</p>
+            </div>
+            <div class="adblock-status-badge">
+              <span class="badge" id="dnsStatusBadge">Consultando DNS...</span>
+            </div>
+          </div>
+
+          <div class="adblock-providers-grid">
+            <!-- AdGuard Standard -->
+            <div class="dns-provider-card" data-provider="adguard">
+              <div class="provider-top">
+                <span class="provider-icon">⚡</span>
+                <span class="badge badge-cyan">RECOMENDADO</span>
+              </div>
+              <h4>AdGuard DNS</h4>
+              <p>Bloquea anuncios generales, ventanas emergentes y telemetría en apps.</p>
+              <code>dns.adguard-dns.com</code>
+              <button class="btn btn-sm btn-cyan btn-apply-dns" data-provider="adguard">Activar en TV</button>
+            </div>
+
+            <!-- AdGuard Family -->
+            <div class="dns-provider-card" data-provider="adguard-family">
+              <div class="provider-top">
+                <span class="provider-icon">👨‍👩‍👦</span>
+                <span class="badge badge-purple">FAMILIAR</span>
+              </div>
+              <h4>AdGuard Familiar</h4>
+              <p>Bloqueo de publicidad + filtrado de contenido adulto y búsqueda segura.</p>
+              <code>family.adguard-dns.com</code>
+              <button class="btn btn-sm btn-purple btn-apply-dns" data-provider="adguard-family">Activar en TV</button>
+            </div>
+
+            <!-- Mullvad DNS -->
+            <div class="dns-provider-card" data-provider="mullvad">
+              <div class="provider-top">
+                <span class="provider-icon">🔒</span>
+                <span class="badge badge-glow">MÁX PRIVACIDAD</span>
+              </div>
+              <h4>Mullvad AdBlock</h4>
+              <p>Filtrado estricto anti-rastreo y publicidad sin registros de actividad.</p>
+              <code>base.dns.mullvad.net</code>
+              <button class="btn btn-sm btn-cyan btn-apply-dns" data-provider="mullvad">Activar en TV</button>
+            </div>
+
+            <!-- Restablecer / Automático -->
+            <div class="dns-provider-card" data-provider="auto">
+              <div class="provider-top">
+                <span class="provider-icon">🔄</span>
+                <span class="badge badge-counter">DEFAULT</span>
+              </div>
+              <h4>DNS Automático</h4>
+              <p>Vuelve al servidor DNS por defecto de tu proveedor de Internet (sin bloqueo).</p>
+              <code>Modo Automático</code>
+              <button class="btn btn-sm btn-ghost btn-apply-dns" data-provider="auto">Restablecer</button>
+            </div>
+          </div>
+
+          <!-- DNS Personalizado -->
+          <div class="custom-dns-row">
+            <label class="form-label">O usa tu propio proveedor DoT (NextDNS, Pi-hole, AdGuard Home):</label>
+            <div class="input-with-button">
+              <input type="text" class="cyber-input" id="inputCustomDnsHost" placeholder="Ej: xxxxx.dns.nextdns.io" />
+              <button class="btn btn-cyan" id="btnApplyCustomDns">Aplicar DNS Personalizado</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fila de Herramientas Complementarias de Bloqueo -->
+        <div class="adblock-subgrid">
+          
+          <!-- Bloqueo de Anuncios en Home / Google TV -->
+          <div class="tweak-card">
+            <div class="tweak-card-header">
+              <div class="tweak-icon">🚫</div>
+              <div>
+                <h4>Anuncios y Trailers del Menú Principal (Home)</h4>
+                <p>Deshabilita los trailers de reproducción automática y filas de publicidad patrocinada en Android TV / Google TV Home.</p>
+              </div>
+            </div>
+            <div class="tweak-card-body">
+              <div class="toggle-switch-wrapper">
+                <label class="switch">
+                  <input type="checkbox" id="switchDisableLauncherAds">
+                  <span class="slider round"></span>
+                </label>
+                <span class="switch-label" id="labelLauncherAds">Consultando estado...</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SmartTube: YouTube Sin Publicidad -->
+          <div class="tweak-card">
+            <div class="tweak-card-header">
+              <div class="tweak-icon">📺</div>
+              <div>
+                <h4>SmartTube (YouTube Sin Anuncios)</h4>
+                <p>Cliente de YouTube de código abierto para Android TV. Bloquea anuncios de video, saltos automáticos de patrocinios (SponsorBlock) y reproduce en 4K/60fps/HDR.</p>
+              </div>
+            </div>
+            <div class="tweak-card-body">
+              <button class="btn btn-primary" id="btnInstallSmartTube">
+                <span class="btn-spinner hidden" id="spinnerSmartTube"></span>
+                <span id="textSmartTube">⚡ Instalar SmartTube en 1-Clic</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Projectivy Launcher (Launcher sin publicidad) -->
+          <div class="tweak-card">
+            <div class="tweak-card-header">
+              <div class="tweak-icon">🚀</div>
+              <div>
+                <h4>Projectivy Launcher (Sin Publicidad)</h4>
+                <p>Reemplaza la pesada interfaz llena de anuncios de Google TV por un launcher ultra rápido, minimalista y sin anuncios.</p>
+              </div>
+            </div>
+            <div class="tweak-card-body">
+              <button class="btn btn-purple" id="btnInstallProjectivy">
+                <span class="btn-spinner hidden" id="spinnerProjectivy"></span>
+                <span id="textProjectivy">📦 Instalar Projectivy Launcher</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Límite de Procesos en Segundo Plano -->
+          <div class="tweak-card">
+            <div class="tweak-card-header">
+              <div class="tweak-icon">⚡</div>
+              <div>
+                <h4>Optimización de RAM (Límite de Procesos)</h4>
+                <p>Reduce la sobrecarga de memoria RAM en TVs de 1GB/2GB limitando las apps que corren en background.</p>
+              </div>
+            </div>
+            <div class="tweak-card-body">
+              <div class="button-toggle-group">
+                <button class="btn btn-toggle btn-ram-limit active" data-limit="-1">Normal</button>
+                <button class="btn btn-toggle btn-ram-limit" data-limit="4">Máx 4</button>
+                <button class="btn btn-toggle btn-ram-limit" data-limit="3">Máx 3</button>
+                <button class="btn btn-toggle btn-ram-limit" data-limit="2">Máx 2</button>
+              </div>
+            </div>
+          </div>
+
         </div>
 
       </div>

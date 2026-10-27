@@ -1536,3 +1536,123 @@ input:checked + .slider:before {
 .hidden {
   display: none !important;
 }
+
+/* ======================================================= */
+/* TAB AD-BLOCK: BLOQUEADOR DE PUBLICIDAD & PRIVACIDAD     */
+/* ======================================================= */
+.adblock-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.adblock-hero-card {
+  background: linear-gradient(135deg, rgba(19, 24, 36, 0.95), rgba(12, 16, 23, 0.98));
+  border: 1px solid var(--border-neon);
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.08);
+}
+
+.adblock-hero-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.adblock-shield-icon {
+  font-size: 38px;
+  background: rgba(0, 240, 255, 0.08);
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+  flex-shrink: 0;
+}
+
+.adblock-hero-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.adblock-hero-header p {
+  color: var(--text-muted);
+  font-size: 14px;
+  max-width: 780px;
+}
+
+.adblock-status-badge {
+  margin-left: auto;
+}
+
+.adblock-providers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.dns-provider-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+.dns-provider-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(0, 240, 255, 0.4);
+  transform: translateY(-2px);
+}
+.dns-provider-card.active-dns {
+  border-color: var(--green-accent);
+  background: rgba(0, 255, 157, 0.04);
+  box-shadow: 0 0 15px rgba(0, 255, 157, 0.15);
+}
+
+.provider-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.provider-icon {
+  font-size: 22px;
+}
+
+.dns-provider-card h4 {
+  font-size: 16px;
+  font-weight: 700;
+}
+.dns-provider-card p {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  flex: 1;
+}
+.dns-provider-card code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--cyan-primary);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 4px 8px;
+  border-radius: 4px;
+  word-break: break-all;
+}
+
+.custom-dns-row {
+  margin-top: 14px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-dim);
+}
+
+.adblock-subgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 20px;
+}
+

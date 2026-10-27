@@ -112,6 +112,22 @@ document.addEventListener('DOMContentLoaded', () => {
     tvScreenImg: document.getElementById('tvScreenImg'),
     tvScreenPlaceholder: document.getElementById('tvScreenPlaceholder'),
 
+    // Ad-Block & Privacidad
+    btnApplyDnsList: document.querySelectorAll('.btn-apply-dns'),
+    dnsProviderCards: document.querySelectorAll('.dns-provider-card'),
+    dnsStatusBadge: document.getElementById('dnsStatusBadge'),
+    inputCustomDnsHost: document.getElementById('inputCustomDnsHost'),
+    btnApplyCustomDns: document.getElementById('btnApplyCustomDns'),
+    switchDisableLauncherAds: document.getElementById('switchDisableLauncherAds'),
+    labelLauncherAds: document.getElementById('labelLauncherAds'),
+    btnInstallSmartTube: document.getElementById('btnInstallSmartTube'),
+    spinnerSmartTube: document.getElementById('spinnerSmartTube'),
+    textSmartTube: document.getElementById('textSmartTube'),
+    btnInstallProjectivy: document.getElementById('btnInstallProjectivy'),
+    spinnerProjectivy: document.getElementById('spinnerProjectivy'),
+    textProjectivy: document.getElementById('textProjectivy'),
+    btnRamLimitList: document.querySelectorAll('.btn-ram-limit'),
+
     // Terminal Shell
     terminalScreen: document.getElementById('terminalScreen'),
     terminalInput: document.getElementById('terminalInput'),
@@ -298,6 +314,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // Acciones automáticas por tab
       if (targetId === 'tab-debloat' && state.connectedDevice && state.packages.length === 0) {
         loadPackages();
+      }
+      if (targetId === 'tab-adblock' && state.connectedDevice) {
+        fetchAdblockStatus();
       }
       if (targetId === 'tab-remote' && state.connectedDevice && !el.tvScreenImg.src) {
         takeScreenshot();
@@ -997,6 +1016,207 @@ document.addEventListener('DOMContentLoaded', () => {
 
   el.btnClearTerminal.addEventListener('click', () => {
     el.terminalScreen.innerHTML = '';
+  });
+
+  // ==========================================================
+  // --- MÓDULO AD-BLOCK & PRIVACIDAD                          ---
+  // ==========================================================
+
+  async function fetchAdblockStatus() {
+    if (!state.connectedDevice) return;
+    try {
+      const res = await fetch('/api/device/adblock/status');
+      const data = await res.json();
+
+      // Estado de DNS
+      const dns = data.dns || {};
+      el.dnsProviderCards.forEach(c => c.classList.remove('active-dns'));
+
+      if (dns.mode === 'hostname' && dns.specifier) {
+        el.dnsStatusBadge.className = 'badge badge-cyan';
+        el.dnsStatusBadge.innerText = `ACTIVO: ${dns.specifier}`;
+        
+        // Marcar tarjeta correspondiente si coincide
+        el.dnsProviderCards.forEach(card => {
+          const p = card.dataset.provider;
+          if (
+            (p === 'adguard' && dns.specifier.includes('dns.adguard')) ||
+            (p === 'adguard-family' && dns.specifier.includes('family.adguard')) ||
+            (p === 'mullvad' && dns.specifier.includes('mullvad'))
+          ) {
+            card.classList.add('active-dns');
+          }
+        });
+      } else {
+        el.dnsStatusBadge.className = 'badge badge-counter';
+        el.dnsStatusBadge.innerText = `MODO: ${dns.mode || 'Automático'} (Sin Filtro)`;
+        const autoCard = document.querySelector('.dns-provider-card[data-provider="auto"]');
+        if (autoCard) autoCard.classList.add('active-dns');
+      }
+
+      // Estado de Launcher Ads
+      const adsDisabled = !!data.launcherAdsDisabled;
+      el.switchDisableLauncherAds.checked = adsDisabled;
+      el.labelLauncherAds.innerText = adsDisabled ? 'Bloqueados (Recomendaciones Desactivadas)' : 'Permitidos (Recomendaciones Activas)';
+    } catch (e) {
+      console.error('Error al obtener estado de Ad-Block:', e);
+    }
+  }
+
+  // Aplicar Proveedor de DNS
+  async function applyDnsProvider(provider, customHost = '') {
+    if (!state.connectedDevice) return showToast('Conecta tu Android TV primero', 'error');
+
+    showToast(`Configurando DNS Privado en la TV (${provider})...`, 'info');
+    try {
+      const res = await fetch('/api/device/adblock/dns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, customHost })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(data.message, 'success');
+        await fetchAdblockStatus();
+      } else {
+        showToast(data.message || 'Error al aplicar DNS', 'error');
+      }
+    } catch (e) {
+      showToast('Error de conexión al aplicar DNS', 'error');
+    }
+  }
+
+  el.btnApplyDnsList.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const provider = btn.dataset.provider;
+      applyDnsProvider(provider);
+    });
+  });
+
+  el.btnApplyCustomDns.addEventListener('click', () => {
+    const host = el.inputCustomDnsHost.value.trim();
+    if (!host) return showToast('Ingresa el host DoT (ej: dns.adguard-dns.com)', 'error');
+    applyDnsProvider('custom', host);
+  });
+
+  // Switch de Recomendaciones y Anuncios del Home
+  el.switchDisableLauncherAds.addEventListener('change', async (e) => {
+    if (!state.connectedDevice) {
+      e.target.checked = !e.target.checked;
+      return showToast('Conecta tu Android TV primero', 'error');
+    }
+
+    const disable = e.target.checked;
+    showToast(disable ? 'Bloqueando recomendaciones del Home...' : 'Restaurando recomendaciones...', 'info');
+
+    try {
+      const res = await fetch('/api/device/adblock/launcher-ads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ disable })
+      });
+      const data = await res.json();
+      if (data.success) {
+        el.labelLauncherAds.innerText = disable ? 'Bloqueados (Recomendaciones Desactivadas)' : 'Permitidos (Recomendaciones Activas)';
+        showToast(data.message, 'success');
+      } else {
+        showToast('Error al modificar anuncios del Launcher', 'error');
+        e.target.checked = !disable;
+      }
+    } catch (e) {
+      showToast('Error en la petición', 'error');
+    }
+  });
+
+  // Instalación de SmartTube en 1-Clic
+  el.btnInstallSmartTube.addEventListener('click', async () => {
+    if (!state.connectedDevice) return showToast('Conecta tu Android TV primero', 'error');
+
+    el.btnInstallSmartTube.disabled = true;
+    el.spinnerSmartTube.classList.remove('hidden');
+    el.textSmartTube.innerText = 'Descargando e instalando SmartTube oficial en la TV...';
+
+    showToast('Descargando la última versión oficial de SmartTube...', 'info');
+
+    try {
+      const res = await fetch('/api/device/apps/install-curated', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appKey: 'smarttube' })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast(data.message, 'success');
+        el.textSmartTube.innerText = '✔ ¡SmartTube Instalado con Éxito!';
+      } else {
+        showToast(data.message || 'Error al instalar SmartTube', 'error');
+        el.textSmartTube.innerText = '⚡ Instalar SmartTube en 1-Clic';
+      }
+    } catch (e) {
+      showToast('Error de conexión', 'error');
+      el.textSmartTube.innerText = '⚡ Instalar SmartTube en 1-Clic';
+    } finally {
+      el.btnInstallSmartTube.disabled = false;
+      el.spinnerSmartTube.classList.add('hidden');
+    }
+  });
+
+  // Instalación de Projectivy Launcher
+  el.btnInstallProjectivy.addEventListener('click', async () => {
+    if (!state.connectedDevice) return showToast('Conecta tu Android TV primero', 'error');
+
+    el.btnInstallProjectivy.disabled = true;
+    el.spinnerProjectivy.classList.remove('hidden');
+    el.textProjectivy.innerText = 'Descargando e instalando Projectivy Launcher...';
+
+    showToast('Descargando Projectivy Launcher...', 'info');
+
+    try {
+      const res = await fetch('/api/device/apps/install-curated', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appKey: 'projectivy' })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast(data.message, 'success');
+        el.textProjectivy.innerText = '✔ ¡Projectivy Launcher Instalado!';
+      } else {
+        showToast(data.message || 'Error al instalar Projectivy', 'error');
+        el.textProjectivy.innerText = '📦 Instalar Projectivy Launcher';
+      }
+    } catch (e) {
+      showToast('Error de conexión', 'error');
+      el.textProjectivy.innerText = '📦 Instalar Projectivy Launcher';
+    } finally {
+      el.btnInstallProjectivy.disabled = false;
+      el.spinnerProjectivy.classList.add('hidden');
+    }
+  });
+
+  // Límite de RAM / Procesos de Background
+  el.btnRamLimitList.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!state.connectedDevice) return showToast('Conecta tu Android TV primero', 'error');
+
+      const limit = Number(btn.dataset.limit);
+      el.btnRamLimitList.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const res = await fetch('/api/device/tweaks/background-limit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ limit })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(data.message, 'success');
+      } else {
+        showToast('Error al configurar límite de procesos', 'error');
+      }
+    });
   });
 
   // --- Modal de Guía ---

@@ -355,6 +355,170 @@ class AdbManager {
     const args = dev ? ['-s', dev, 'exec-out', 'screencap', '-p'] : ['exec-out', 'screencap', '-p'];
     return spawn(this.adbPath, args);
   }
+
+  // ==========================================================
+  // --- MÓDULO DE AD-BLOCKING & PRIVACIDAD (SISTEMA COMPLETO) ---
+  // ==========================================================
+
+  async getPrivateDns(target = null) {
+    const dev = target || this.connectedDevice;
+    if (!dev) return null;
+    const resMode = await this.shell('settings get global private_dns_mode', dev);
+    const resSpec = await this.shell('settings get global private_dns_specifier', dev);
+
+    const mode = (resMode.stdout || '').trim();
+    const specifier = (resSpec.stdout || '').trim();
+
+    return {
+      mode: mode === 'null' ? 'opportunistic' : mode,
+      specifier: specifier === 'null' ? '' : specifier,
+      isAdBlocking: specifier.includes('adguard') || specifier.includes('mullvad') || specifier.includes('nextdns')
+    };
+  }
+
+  async setPrivateDns(provider, customHost = '', target = null) {
+    const dev = target || this.connectedDevice;
+    if (!dev) return { success: false, message: 'Dispositivo no conectado' };
+
+    let mode = 'hostname';
+    let host = '';
+
+    switch (provider) {
+      case 'adguard':
+        host = 'dns.adguard-dns.com';
+        break;
+      case 'adguard-family':
+        host = 'family.adguard-dns.com';
+        break;
+      case 'mullvad':
+        host = 'base.dns.mullvad.net';
+        break;
+      case 'quad9':
+        host = 'dns.quad9.net';
+        break;
+      case 'custom':
+        host = customHost.trim();
+        break;
+      case 'off':
+        mode = 'off';
+        host = '';
+        break;
+      case 'auto':
+      default:
+        mode = 'opportunistic';
+        host = '';
+        break;
+    }
+
+    const cmd = mode === 'hostname' 
+      ? `settings put global private_dns_mode hostname && settings put global private_dns_specifier ${host}`
+      : `settings put global private_dns_mode ${mode} && settings put global private_dns_specifier ""`;
+
+    const res = await this.shell(cmd, dev);
+    return {
+      success: res.success,
+      mode,
+      host,
+      message: mode === 'hostname' ? `DNS Privado Anti-Anuncios activado: ${host}` : `DNS configurado en modo: ${mode}`
+    };
+  }
+
+  async getLauncherAdsStatus(target = null) {
+    const dev = target || this.connectedDevice;
+    if (!dev) return false;
+    const res = await this.shell('pm list packages -d com.google.android.tvrecommendations', dev);
+    return (res.stdout || '').includes('com.google.android.tvrecommendations');
+  }
+
+  async toggleLauncherAds(disableAds = true, target = null) {
+    const dev = target || this.connectedDevice;
+    if (!dev) return { success: false, message: 'Dispositivo no conectado' };
+
+    const cmd = disableAds
+      ? 'pm disable-user --user 0 com.google.android.tvrecommendations'
+      : 'pm enable com.google.android.tvrecommendations';
+
+    const res = await this.shell(cmd, dev);
+    return {
+      success: res.success,
+      adsDisabled: disableAds,
+      message: disableAds 
+        ? 'Canal de recomendaciones y anuncios del Home desactivado' 
+        : 'Canal de recomendaciones restaurado'
+    };
+  }
+
+  async setBackgroundProcessLimit(limit, target = null) {
+    const dev = target || this.connectedDevice;
+    if (!dev) return { success: false, message: 'Dispositivo no conectado' };
+    // -1 = estándar, 0 = sin procesos, 1, 2, 3, 4
+    const res = await this.shell(`settings put global background_process_limit ${limit}`, dev);
+    return { success: res.success, limit, message: `Límite de procesos en 2º plano establecido a: ${limit}` };
+  }
+
+  async downloadAndInstallCuratedApp(appKey, target = null) {
+    const dev = target || this.connectedDevice;
+    if (!dev) return { success: false, message: 'Dispositivo no conectado' };
+
+    const apps = {
+      smarttube: {
+        name: 'SmartTube (YouTube Sin Anuncios)',
+        // Enlace oficial de release estable de SmartTube
+        url: 'https://github.com/yuliskov/SmartTube/releases/download/latest/smarttube_stable.apk',
+        filename: 'smarttube_stable.apk'
+      },
+      projectivy: {
+        name: 'Projectivy Launcher (Launcher Limpio)',
+        url: 'https://github.com/spocky/marmitek-remote/raw/master/projectivy.apk', // referencia alternativa o descarga directa
+        filename: 'projectivy.apk'
+      }
+    };
+
+    const targetApp = apps[appKey];
+    if (!targetApp) return { success: false, message: 'App no encontrada en el catálogo curado' };
+
+    const tempPath = path.join(os.tmpdir(), targetApp.filename);
+
+    return new Promise((resolve) => {
+      const https = require('https');
+      const http = require('http');
+
+      const downloadFile = (fileUrl, destPath, redirects = 5) => {
+        if (redirects === 0) return resolve({ success: false, message: 'Demasiadas redirecciones al descargar la APK' });
+
+        const client = fileUrl.startsWith('https') ? https : http;
+        client.get(fileUrl, { headers: { 'User-Agent': 'Mozilla/5.0 AndroidTV' } }, (res) => {
+          if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+            return downloadFile(res.headers.location, destPath, redirects - 1);
+          }
+
+          if (res.statusCode !== 200) {
+            return resolve({ success: false, message: `Error HTTP al descargar: ${res.statusCode}` });
+          }
+
+          const fileStream = fs.createWriteStream(destPath);
+          res.pipe(fileStream);
+
+          fileStream.on('finish', async () => {
+            fileStream.close();
+            // Instalar en la TV
+            const installRes = await this.installApk(destPath, dev);
+            fs.unlink(destPath, () => {}); // limpiar temp
+            if (installRes.success) {
+              resolve({ success: true, message: `¡${targetApp.name} instalado con éxito en tu Android TV!` });
+            } else {
+              resolve({ success: false, message: installRes.stderr || 'Error al ejecutar instalación ADB' });
+            }
+          });
+        }).on('error', (err) => {
+          resolve({ success: false, message: `Error en la descarga: ${err.message}` });
+        });
+      };
+
+      downloadFile(targetApp.url, tempPath);
+    });
+  }
 }
 
 module.exports = new AdbManager();
+

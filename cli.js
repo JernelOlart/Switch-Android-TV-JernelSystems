@@ -102,6 +102,35 @@ async function main() {
       break;
     }
 
+    case 'adblock': {
+      const action = (args[1] || 'on').toLowerCase();
+      const provider = args[2] || 'adguard';
+
+      if (action === 'off') {
+        const res = await adb.setPrivateDns('auto');
+        console.log(`\x1b[33m✔ DNS restaurado a modo automático (Sin filtro)\x1b[0m`);
+      } else {
+        const res = await adb.setPrivateDns(provider);
+        if (res.success) {
+          console.log(`\x1b[32m✔ ${res.message}\x1b[0m`);
+        } else {
+          console.error(`\x1b[31m❌ Error al configurar DNS: ${res.message}\x1b[0m`);
+        }
+      }
+      break;
+    }
+
+    case 'smarttube': {
+      console.log('⬇️ Descargando e instalando la última versión de SmartTube oficial...');
+      const res = await adb.downloadAndInstallCuratedApp('smarttube');
+      if (res.success) {
+        console.log(`\x1b[32m✔ ${res.message}\x1b[0m`);
+      } else {
+        console.error(`\x1b[31m❌ ${res.message}\x1b[0m`);
+      }
+      break;
+    }
+
     case 'web':
     case 'start': {
       require('./server');
@@ -110,14 +139,15 @@ async function main() {
 
     default:
       console.log(`Uso:
-  ./start.sh                  -> Abre el panel web interactivo
-  node cli.js scan            -> Escanear la subred Wi-Fi
-  node cli.js connect <ip>    -> Conectar con la Android TV por ADB (puerto 5555)
-  node cli.js devices         -> Ver dispositivos conectados
-  node cli.js tweaks          -> Aplicar tweaks de rendimiento (0.5x animaciones, etc.)
-  node cli.js debloat         -> Auditar bloatware del sistema
-  node cli.js shell "<cmd>"   -> Ejecutar comando adb shell
-  node cli.js web             -> Iniciar servidor web`);
+  ./start.sh                       -> Abre el panel web interactivo
+  node cli.js scan                 -> Escanear la subred Wi-Fi
+  node cli.js connect <ip>         -> Conectar con la Android TV por ADB (puerto 5555)
+  node cli.js adblock [on|off]     -> Activar/Desactivar AdGuard DNS en todo el sistema
+  node cli.js smarttube            -> Descargar e instalar YouTube Sin Anuncios (SmartTube)
+  node cli.js tweaks               -> Aplicar tweaks de rendimiento (0.5x animaciones, etc.)
+  node cli.js debloat              -> Auditar bloatware del sistema
+  node cli.js shell "<cmd>"        -> Ejecutar comando adb shell
+  node cli.js web                  -> Iniciar servidor web`);
       break;
   }
 }
