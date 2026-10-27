@@ -321,7 +321,7 @@ app.post('/api/device/apps/install-curated', async (req, res) => {
 // Iniciar Servidor
 server.listen(PORT, () => {
   console.log(`=======================================================`);
-  console.log(`  ⚡ NEOSWITCH TV — ANDROID TV STUDIO v1.2`);
+  console.log(`  NEOSWITCH TV — ANDROID TV STUDIO v1.2`);
   console.log(`=======================================================`);
   console.log(`  Colaboración:`);
   console.log(`  • Jernel Systems:    https://www.jernelsystems.com`);

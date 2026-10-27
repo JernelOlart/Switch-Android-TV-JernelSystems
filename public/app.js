@@ -149,8 +149,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
-    toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+    const iconSvg = type === 'success' 
+      ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>'
+      : type === 'error'
+      ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>'
+      : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+    toast.innerHTML = `<span class="toast-icon">${iconSvg}</span><span class="toast-msg">${message}</span>`;
     el.toastContainer.appendChild(toast);
 
     setTimeout(() => {
@@ -381,9 +385,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const isCast = dev.isCastDevice;
     const isAdb = dev.isAdbReady;
 
+    const devIconSvg = isAdb
+      ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>'
+      : isCast
+      ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>'
+      : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>';
+
     item.innerHTML = `
       <div class="dev-left-info">
-        <div class="dev-icon-badge">${isAdb ? '⚡' : isCast ? '📺' : '📡'}</div>
+        <div class="dev-icon-badge">${devIconSvg}</div>
         <div class="dev-details-text">
           <h4>
             <span>${tvName}</span>
@@ -725,7 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           <button class="btn btn-xs btn-ghost btn-act" data-action="force-stop" data-pkg="${pkg.name}" title="Forzar Detención">Detener</button>
           <button class="btn btn-xs btn-ghost btn-act" data-action="clear-data" data-pkg="${pkg.name}" title="Borrar Datos">Limpiar</button>
-          <button class="btn btn-xs btn-ghost btn-act" data-action="launch" data-pkg="${pkg.name}" title="Abrir en TV">▶ Abrir</button>
+          <button class="btn btn-xs btn-ghost btn-act" data-action="launch" data-pkg="${pkg.name}" title="Abrir en TV" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Abrir</button>
         </div>
       `;
 
@@ -1148,14 +1158,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (data.success) {
         showToast(data.message, 'success');
-        el.textSmartTube.innerText = '✔ ¡SmartTube Instalado con Éxito!';
+        el.textSmartTube.innerText = '¡SmartTube Instalado con Éxito!';
       } else {
         showToast(data.message || 'Error al instalar SmartTube', 'error');
-        el.textSmartTube.innerText = '⚡ Instalar SmartTube en 1-Clic';
+        el.textSmartTube.innerText = 'Instalar SmartTube en 1-Clic';
       }
     } catch (e) {
       showToast('Error de conexión', 'error');
-      el.textSmartTube.innerText = '⚡ Instalar SmartTube en 1-Clic';
+      el.textSmartTube.innerText = 'Instalar SmartTube en 1-Clic';
     } finally {
       el.btnInstallSmartTube.disabled = false;
       el.spinnerSmartTube.classList.add('hidden');
@@ -1182,14 +1192,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (data.success) {
         showToast(data.message, 'success');
-        el.textProjectivy.innerText = '✔ ¡Projectivy Launcher Instalado!';
+        el.textProjectivy.innerText = '¡Projectivy Launcher Instalado!';
       } else {
         showToast(data.message || 'Error al instalar Projectivy', 'error');
-        el.textProjectivy.innerText = '📦 Instalar Projectivy Launcher';
+        el.textProjectivy.innerText = 'Instalar Projectivy Launcher';
       }
     } catch (e) {
       showToast('Error de conexión', 'error');
-      el.textProjectivy.innerText = '📦 Instalar Projectivy Launcher';
+      el.textProjectivy.innerText = 'Instalar Projectivy Launcher';
     } finally {
       el.btnInstallProjectivy.disabled = false;
       el.spinnerProjectivy.classList.add('hidden');

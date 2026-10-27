@@ -7,7 +7,7 @@ const command = args[0] || 'help';
 
 async function main() {
   console.log(`\x1b[36m=======================================================\x1b[0m`);
-  console.log(`\x1b[1m\x1b[35m  ⚡ NEOSWITCH TV — ANDROID TV STUDIO CLI v1.2\x1b[0m`);
+  console.log(`\x1b[1m\x1b[35m  NEOSWITCH TV — ANDROID TV STUDIO CLI v1.2\x1b[0m`);
   console.log(`  Colaboración: Jernel Systems & NeoTech Solutions`);
   console.log(`  GitHub: https://github.com/JernelOlart`);
   console.log(`\x1b[36m=======================================================\x1b[0m`);
@@ -15,7 +15,7 @@ async function main() {
 
   switch (command.toLowerCase()) {
     case 'scan': {
-      console.log('🔍 Iniciando escaneo de red local Wi-Fi...');
+      console.log('[*] Iniciando escaneo de red local Wi-Fi...');
       const nets = scanner.getLocalNetworks();
       if (nets.length > 0) {
         console.log(`Subred detectada: ${nets[0].baseSubnet}.0/24 (IP: ${nets[0].ip})`);
@@ -28,7 +28,7 @@ async function main() {
       });
 
       const res = await scanner.scanSubnet();
-      console.log(`\n\x1b[32m✔ Escaneo finalizado. ${res.totalDiscovered} dispositivo(s) detectados.\x1b[0m`);
+      console.log(`\n\x1b[32m[OK] Escaneo finalizado. ${res.totalDiscovered} dispositivo(s) detectados.\x1b[0m`);
       break;
     }
 
@@ -47,13 +47,13 @@ async function main() {
       const ip = args[1];
       const port = args[2] || 5555;
       if (!ip) {
-        console.error('❌ Error: Especifica la IP. Ejemplo: node cli.js connect 192.168.6.25');
+        console.error('[ERROR] Especifica la IP. Ejemplo: node cli.js connect 192.168.6.25');
         process.exit(1);
       }
       console.log(`Conectando a ${ip}:${port}...`);
       const res = await adb.connect(ip, port);
       if (res.success) {
-        console.log(`\x1b[32m✔ ${res.message}\x1b[0m`);
+        console.log(`\x1b[32m[OK] ${res.message}\x1b[0m`);
         const info = await adb.getDeviceInfo();
         if (info) {
           console.log(`  Modelo: ${info.model} (${info.brand})`);
@@ -61,7 +61,7 @@ async function main() {
           console.log(`  Resolución: ${info.resolution} | DPI: ${info.density}`);
         }
       } else {
-        console.log(`\x1b[31m❌ ${res.message}\x1b[0m`);
+        console.log(`\x1b[31m[ERROR] ${res.message}\x1b[0m`);
       }
       break;
     }
@@ -69,15 +69,15 @@ async function main() {
     case 'tweaks': {
       const devs = await adb.getDevices();
       if (devs.length === 0) {
-        console.error('❌ Error: No hay dispositivos ADB conectados. Conéctate primero con "node cli.js connect <ip>"');
+        console.error('[ERROR] No hay dispositivos ADB conectados. Conéctate primero con "node cli.js connect <ip>"');
         process.exit(1);
       }
-      console.log(`⚡ Aplicando optimizaciones y tweaks al dispositivo...`);
+      console.log(`[*] Aplicando optimizaciones y tweaks al dispositivo...`);
       await adb.setAnimationsSpeed(0.5);
-      console.log('  ✔ Animaciones reducidas a 0.5x (Aceleración de UI)');
+      console.log('  [OK] Animaciones reducidas a 0.5x (Aceleración de UI)');
       await adb.trimCaches();
-      console.log('  ✔ Cachés de aplicaciones liberadas (pm trim-caches)');
-      console.log('\x1b[32m✔ ¡Modificaciones aplicadas con éxito!\x1b[0m');
+      console.log('  [OK] Cachés de aplicaciones liberadas (pm trim-caches)');
+      console.log('\x1b[32m[OK] ¡Modificaciones aplicadas con éxito!\x1b[0m');
       break;
     }
 
@@ -110,25 +110,25 @@ async function main() {
 
       if (action === 'off') {
         const res = await adb.setPrivateDns('auto');
-        console.log(`\x1b[33m✔ DNS restaurado a modo automático (Sin filtro)\x1b[0m`);
+        console.log(`\x1b[33m[OK] DNS restaurado a modo automático (Sin filtro)\x1b[0m`);
       } else {
         const res = await adb.setPrivateDns(provider);
         if (res.success) {
-          console.log(`\x1b[32m✔ ${res.message}\x1b[0m`);
+          console.log(`\x1b[32m[OK] ${res.message}\x1b[0m`);
         } else {
-          console.error(`\x1b[31m❌ Error al configurar DNS: ${res.message}\x1b[0m`);
+          console.error(`\x1b[31m[ERROR] Error al configurar DNS: ${res.message}\x1b[0m`);
         }
       }
       break;
     }
 
     case 'smarttube': {
-      console.log('⬇️ Descargando e instalando la última versión de SmartTube oficial...');
+      console.log('[*] Descargando e instalando la última versión de SmartTube oficial...');
       const res = await adb.downloadAndInstallCuratedApp('smarttube');
       if (res.success) {
-        console.log(`\x1b[32m✔ ${res.message}\x1b[0m`);
+        console.log(`\x1b[32m[OK] ${res.message}\x1b[0m`);
       } else {
-        console.error(`\x1b[31m❌ ${res.message}\x1b[0m`);
+        console.error(`\x1b[31m[ERROR] ${res.message}\x1b[0m`);
       }
       break;
     }

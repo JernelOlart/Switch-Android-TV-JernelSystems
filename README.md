@@ -1,20 +1,20 @@
-# ⚡ NeoSwitch TV — Android TV Studio
+# NeoSwitch TV — Android TV Studio
 
 Herramienta avanzada de auditoría, escaneo de red Wi-Fi, optimización y modificación de sistema para dispositivos **Android TV**, **Google TV**, **Chromecast con Google TV** y **Fire TV**.
 
 ---
 
-## 🤝 Colaboración & Créditos
+## Colaboración & Créditos
 
 **NeoSwitch TV** es un proyecto desarrollado por [**@JernelOlart**](https://github.com/JernelOlart) en colaboración estratégica entre:
 
-- 🌐 [**Jernel Systems**](https://www.jernelsystems.com)
-- 🚀 [**NeoTech Solutions**](https://neotechsolutions.mx/)
-- 💻 Repositorio & GitHub: [https://github.com/JernelOlart](https://github.com/JernelOlart)
+- [**Jernel Systems**](https://www.jernelsystems.com)
+- [**NeoTech Solutions**](https://neotechsolutions.mx/)
+- Repositorio & GitHub: [https://github.com/JernelOlart](https://github.com/JernelOlart)
 
 ---
 
-## 🌟 Características Principales
+## Características Principales
 
 1. **Radar y Escáner de Red Local**:
    - Detección automática de la subred Wi-Fi local (ej: `192.168.6.0/24`).
@@ -58,7 +58,7 @@ Herramienta avanzada de auditoría, escaneo de red Wi-Fi, optimización y modifi
 
 ---
 
-## 🚀 Inicio Rápido
+## Inicio Rápido
 
 ### Requisitos
 - Node.js v18+ instalado.
@@ -88,10 +88,10 @@ Herramienta avanzada de auditoría, escaneo de red Wi-Fi, optimización y modifi
 
 ---
 
-## 📺 Cómo Activar la Depuración en tu Android TV
+## Cómo Activar la Depuración en tu Android TV
 
 1. **Habilitar Opciones de Desarrollador**:
-   - En tu Android TV, ve a `Ajustes ⚙️ > Preferencias del dispositivo > Información` (o `Sistema > Acerca de` en Google TV).
+   - En tu Android TV, ve a `Ajustes > Preferencias del dispositivo > Información` (o `Sistema > Acerca de` en Google TV).
    - Baja hasta **"Número de compilación"** y presiona el botón central del mando **7 veces seguidas** hasta que aparezca el aviso *"¡Ya eres un desarrollador!"*.
 
 2. **Activar Depuración USB / Red**:
@@ -105,7 +105,7 @@ Herramienta avanzada de auditoría, escaneo de red Wi-Fi, optimización y modifi
 
 ---
 
-## 🛠️ Tecnologías y Diseño
+## Tecnologías y Diseño
 
 - **Arquitectura**: Node.js, Express, WebSocket (`ws`), Multer, ADB Bridge.
 - **Frontend**: Sistema de diseño basado en `DESIGN.md` (*Acctual — Paper invoice on frosted glass*), Vanilla CSS con tokens de alta gama, tipografía Outfit e Inter, componentes pill-shaped y micro-interacciones fluidas.

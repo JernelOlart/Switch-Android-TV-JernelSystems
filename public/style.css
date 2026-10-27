@@ -1670,6 +1670,21 @@ input:checked + .slider:before {
 .toast.toast-info {
   border-left: 4px solid var(--color-electric-blue);
 }
+.toast-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.toast.toast-success .toast-icon {
+  color: var(--color-leaf);
+}
+.toast.toast-error .toast-icon {
+  color: var(--color-coral);
+}
+.toast.toast-info .toast-icon {
+  color: var(--color-electric-blue);
+}
 
 .hidden {
   display: none !important;

@@ -46,7 +46,9 @@
     <!-- Barra lateral / Banner de Dispositivo Actual -->
     <section class="device-hero-card" id="deviceHeroCard">
       <div class="hero-inactive-view" id="heroInactiveView">
-        <div class="radar-mini-icon">📡</div>
+        <div class="radar-mini-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><path d="M2 8.82a15 15 0 0 1 20 0"/><path d="M5 12.859a10 10 0 0 1 14 0"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/></svg>
+        </div>
         <div class="hero-inactive-info">
           <h3>No hay ninguna Android TV vinculada</h3>
           <p>Usa el radar de red Wi-Fi para auto-detectar tu TV o ingresa la IP manualmente con puerto 5555.</p>
@@ -58,7 +60,9 @@
 
       <div class="hero-active-view hidden" id="heroActiveView">
         <div class="device-specs-left">
-          <div class="tv-avatar">📺</div>
+          <div class="tv-avatar">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+          </div>
           <div class="device-text-meta">
             <div class="device-model-row">
               <h2 id="heroModelName">Android TV Device</h2>
@@ -167,8 +171,13 @@
           <!-- Emparejamiento Inalámbrico Android 11+ -->
           <div class="pairing-box">
             <div class="pairing-header" id="togglePairingSection">
-              <span>🔐 Emparejamiento Inalámbrico (Android 11+)</span>
-              <span class="accordion-arrow">▼</span>
+              <span style="display:inline-flex;align-items:center;gap:8px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                Emparejamiento Inalámbrico (Android 11+)
+              </span>
+              <span class="accordion-arrow">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </span>
             </div>
             <div class="pairing-body collapsed" id="pairingBody">
               <p class="hint-text">
@@ -196,7 +205,7 @@
         <!-- Columna Derecha: Dispositivos Descubiertos en el Radar -->
         <div class="panel-box scanner-results-panel">
           <div class="panel-title-bar">
-            <h3><span>📡</span> Dispositivos Detectados en Wi-Fi</h3>
+            <h3>Dispositivos Detectados en Wi-Fi</h3>
             <span class="badge badge-counter" id="devicesCountBadge">0 Encontrados</span>
           </div>
 
@@ -226,7 +235,9 @@
         <!-- Tarjeta 1: Optimización de Animaciones -->
         <div class="tweak-card">
           <div class="tweak-card-header">
-            <div class="tweak-icon">⚡</div>
+            <div class="tweak-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
             <div>
               <h4>Velocidad de Animaciones del Sistema</h4>
               <p>Elimina el lag de los menús reduciendo o apagando las animaciones de Android TV.</p>
@@ -244,7 +255,9 @@
         <!-- Tarjeta 2: Densidad de Pantalla (DPI) -->
         <div class="tweak-card">
           <div class="tweak-card-header">
-            <div class="tweak-icon">📐</div>
+            <div class="tweak-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="17" x2="23" y1="16" y2="16"/></svg>
+            </div>
             <div>
               <h4>Densidad de Pantalla (DPI)</h4>
               <p>Aumenta o reduce el tamaño de la interfaz y botones de tu TV (wm density).</p>
@@ -270,7 +283,9 @@
         <!-- Tarjeta 3: Resolución de Pantalla -->
         <div class="tweak-card">
           <div class="tweak-card-header">
-            <div class="tweak-icon">🖥️</div>
+            <div class="tweak-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+            </div>
             <div>
               <h4>Resolución Forzada (wm size)</h4>
               <p>Fuerza una resolución nativa si la TV está escalando incorrectamente la interfaz.</p>
@@ -293,7 +308,9 @@
         <!-- Tarjeta 4: Pantalla Siempre Activa (Stay Awake) -->
         <div class="tweak-card">
           <div class="tweak-card-header">
-            <div class="tweak-icon">☕</div>
+            <div class="tweak-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            </div>
             <div>
               <h4>Pantalla Siempre Encendida</h4>
               <p>Evita que la TV entre en modo reposo o screensaver automáticamente.</p>
@@ -313,7 +330,9 @@
         <!-- Tarjeta 5: Limpieza de Caché y Memoria -->
         <div class="tweak-card">
           <div class="tweak-card-header">
-            <div class="tweak-icon">🧹</div>
+            <div class="tweak-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 12-8.5 8.5a2.12 2.12 0 1 1-3-3L11 9"/><path d="M18 11l2-2a2.83 2.83 0 0 0-4-4l-2 2"/><path d="m15 13 4 4"/><path d="m14 8 2 2"/></svg>
+            </div>
             <div>
               <h4>Limpieza de Caché del Sistema</h4>
               <p>Ejecuta <span class="code-tag">pm trim-caches</span> para liberar memoria y espacio en almacenamiento.</p>
@@ -321,7 +340,7 @@
           </div>
           <div class="tweak-card-body">
             <button class="btn btn-purple" id="btnTrimCaches">
-              <span>🚀 Liberar Cachés (4GB Trim)</span>
+              <span>Liberar Cachés (4GB Trim)</span>
             </button>
           </div>
         </div>
@@ -329,7 +348,9 @@
         <!-- Tarjeta 6: Reinicio de TV -->
         <div class="tweak-card">
           <div class="tweak-card-header">
-            <div class="tweak-icon">🔄</div>
+            <div class="tweak-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+            </div>
             <div>
               <h4>Comandos de Reinicio Rápido</h4>
               <p>Reinicia el dispositivo o arranca en modo de recuperación directamente.</p>
@@ -355,7 +376,9 @@
         <!-- Header de Acciones de Debloater -->
         <div class="debloat-toolbar">
           <div class="search-input-wrapper">
-            <span class="search-icon">🔍</span>
+            <span class="search-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+            </span>
             <input type="text" class="cyber-input search-input" id="inputSearchPackage" placeholder="Filtrar por nombre de paquete o app..." />
           </div>
 
@@ -368,7 +391,7 @@
           </div>
 
           <button class="btn btn-danger-ghost" id="btnAutoDebloat">
-            <span>🛡️ Deshabilitar Todo el Bloatware Seguro</span>
+            <span>Deshabilitar Bloatware Seguro</span>
           </button>
         </div>
 
@@ -376,7 +399,9 @@
         <div class="apk-dropzone" id="apkDropZone">
           <input type="file" id="apkFileInput" accept=".apk" class="hidden" />
           <div class="dropzone-content">
-            <div class="dropzone-icon">📦</div>
+            <div class="dropzone-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            </div>
             <div>
               <h4>Instalar APK en tu Android TV</h4>
               <p>Arrastra y suelta tu archivo <strong>.APK</strong> aquí o haz clic para seleccionarlo.</p>
@@ -417,7 +442,9 @@
         <!-- Tarjeta Principal: DNS Privado Anti-Anuncios a Nivel de Sistema -->
         <div class="panel-box adblock-hero-card">
           <div class="adblock-hero-header">
-            <div class="adblock-shield-icon">🛡️</div>
+            <div class="adblock-shield-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
             <div>
               <h3>DNS Privado Anti-Publicidad (Sistema Completo)</h3>
               <p>Filtra anuncios, popups, banners y rastreadores de telemetría en <strong>todas las aplicaciones y juegos</strong> de tu Android TV sin necesidad de instalar VPNs que ralenticen tu conexión.</p>
@@ -431,7 +458,9 @@
             <!-- AdGuard Standard -->
             <div class="dns-provider-card" data-provider="adguard">
               <div class="provider-top">
-                <span class="provider-icon">⚡</span>
+                <span class="provider-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </span>
                 <span class="badge badge-cyan">RECOMENDADO</span>
               </div>
               <h4>AdGuard DNS</h4>
@@ -443,7 +472,9 @@
             <!-- AdGuard Family -->
             <div class="dns-provider-card" data-provider="adguard-family">
               <div class="provider-top">
-                <span class="provider-icon">👨‍👩‍👦</span>
+                <span class="provider-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </span>
                 <span class="badge badge-purple">FAMILIAR</span>
               </div>
               <h4>AdGuard Familiar</h4>
@@ -455,7 +486,9 @@
             <!-- Mullvad DNS -->
             <div class="dns-provider-card" data-provider="mullvad">
               <div class="provider-top">
-                <span class="provider-icon">🔒</span>
+                <span class="provider-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </span>
                 <span class="badge badge-glow">MÁX PRIVACIDAD</span>
               </div>
               <h4>Mullvad AdBlock</h4>
@@ -467,7 +500,9 @@
             <!-- Restablecer / Automático -->
             <div class="dns-provider-card" data-provider="auto">
               <div class="provider-top">
-                <span class="provider-icon">🔄</span>
+                <span class="provider-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                </span>
                 <span class="badge badge-counter">DEFAULT</span>
               </div>
               <h4>DNS Automático</h4>
@@ -493,7 +528,9 @@
           <!-- Bloqueo de Anuncios en Home / Google TV -->
           <div class="tweak-card">
             <div class="tweak-card-header">
-              <div class="tweak-icon">🚫</div>
+              <div class="tweak-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" x2="19.07" y1="4.93" y2="19.07"/></svg>
+              </div>
               <div>
                 <h4>Anuncios y Trailers del Menú Principal (Home)</h4>
                 <p>Deshabilita los trailers de reproducción automática y filas de publicidad patrocinada en Android TV / Google TV Home.</p>
@@ -513,7 +550,9 @@
           <!-- SmartTube: YouTube Sin Publicidad -->
           <div class="tweak-card">
             <div class="tweak-card-header">
-              <div class="tweak-icon">📺</div>
+              <div class="tweak-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+              </div>
               <div>
                 <h4>SmartTube (YouTube Sin Anuncios)</h4>
                 <p>Cliente de YouTube de código abierto para Android TV. Bloquea anuncios de video, saltos automáticos de patrocinios (SponsorBlock) y reproduce en 4K/60fps/HDR.</p>
@@ -522,7 +561,7 @@
             <div class="tweak-card-body">
               <button class="btn btn-primary" id="btnInstallSmartTube">
                 <span class="btn-spinner hidden" id="spinnerSmartTube"></span>
-                <span id="textSmartTube">⚡ Instalar SmartTube en 1-Clic</span>
+                <span id="textSmartTube">Instalar SmartTube en 1-Clic</span>
               </button>
             </div>
           </div>
@@ -530,7 +569,9 @@
           <!-- Projectivy Launcher (Launcher sin publicidad) -->
           <div class="tweak-card">
             <div class="tweak-card-header">
-              <div class="tweak-icon">🚀</div>
+              <div class="tweak-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+              </div>
               <div>
                 <h4>Projectivy Launcher (Sin Publicidad)</h4>
                 <p>Reemplaza la pesada interfaz llena de anuncios de Google TV por un launcher ultra rápido, minimalista y sin anuncios.</p>
@@ -539,7 +580,7 @@
             <div class="tweak-card-body">
               <button class="btn btn-purple" id="btnInstallProjectivy">
                 <span class="btn-spinner hidden" id="spinnerProjectivy"></span>
-                <span id="textProjectivy">📦 Instalar Projectivy Launcher</span>
+                <span id="textProjectivy">Instalar Projectivy Launcher</span>
               </button>
             </div>
           </div>
@@ -547,7 +588,9 @@
           <!-- Límite de Procesos en Segundo Plano -->
           <div class="tweak-card">
             <div class="tweak-card-header">
-              <div class="tweak-icon">⚡</div>
+              <div class="tweak-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/></svg>
+              </div>
               <div>
                 <h4>Optimización de RAM (Límite de Procesos)</h4>
                 <p>Reduce la sobrecarga de memoria RAM en TVs de 1GB/2GB limitando las apps que corren en background.</p>
@@ -577,43 +620,63 @@
         <!-- Columna Izquierda: Control Remoto Físico Digital -->
         <div class="panel-box remote-controller-box">
           <div class="panel-title-bar">
-            <h3><span>🎮</span> Control Remoto D-Pad</h3>
+            <h3>Control Remoto D-Pad</h3>
             <span class="badge badge-cyan">ADB Input</span>
           </div>
 
           <!-- Mando virtual D-Pad -->
           <div class="dpad-container">
-            <button class="dpad-btn dpad-up" data-key="19" title="Arriba">▲</button>
+            <button class="dpad-btn dpad-up" data-key="19" title="Arriba">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+            </button>
             <div class="dpad-mid-row">
-              <button class="dpad-btn dpad-left" data-key="21" title="Izquierda">◀</button>
+              <button class="dpad-btn dpad-left" data-key="21" title="Izquierda">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              </button>
               <button class="dpad-btn dpad-center" data-key="66" title="OK / Seleccionar">OK</button>
-              <button class="dpad-btn dpad-right" data-key="22" title="Derecha">▶</button>
+              <button class="dpad-btn dpad-right" data-key="22" title="Derecha">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
             </div>
-            <button class="dpad-btn dpad-down" data-key="20" title="Abajo">▼</button>
+            <button class="dpad-btn dpad-down" data-key="20" title="Abajo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
           </div>
 
           <!-- Botones de Navegación del Sistema -->
           <div class="remote-sys-buttons">
             <button class="btn-remote-circle" data-key="4" title="Atrás (Back)">
-              <span>↩</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 14-5-5 5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
               <small>ATRÁS</small>
             </button>
             <button class="btn-remote-circle" data-key="3" title="Inicio (Home)">
-              <span>⌂</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
               <small>HOME</small>
             </button>
             <button class="btn-remote-circle" data-key="82" title="Menú">
-              <span>≡</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
               <small>MENÚ</small>
             </button>
           </div>
 
           <!-- Controles de Audio y Energía -->
           <div class="remote-media-row">
-            <button class="btn btn-remote-action" data-key="25" title="Bajar Volumen">🔉 Vol -</button>
-            <button class="btn btn-remote-action" data-key="164" title="Silenciar">🔇 Mute</button>
-            <button class="btn btn-remote-action" data-key="24" title="Subir Volumen">🔊 Vol +</button>
-            <button class="btn btn-remote-action btn-danger-action" data-key="26" title="Encender / Apagar">⏻ Power</button>
+            <button class="btn btn-remote-action" data-key="25" title="Bajar Volumen">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              <span>Vol -</span>
+            </button>
+            <button class="btn btn-remote-action" data-key="164" title="Silenciar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" x2="17" y1="9" y2="15"/><line x1="17" x2="23" y1="9" y2="15"/></svg>
+              <span>Mute</span>
+            </button>
+            <button class="btn btn-remote-action" data-key="24" title="Subir Volumen">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              <span>Vol +</span>
+            </button>
+            <button class="btn btn-remote-action btn-danger-action" data-key="26" title="Encender / Apagar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" x2="12" y1="2" y2="12"/></svg>
+              <span>Power</span>
+            </button>
           </div>
 
           <!-- Entrada de Texto / Teclado Virtual para la TV -->
@@ -629,13 +692,16 @@
         <!-- Columna Derecha: Captura de Pantalla en Vivo -->
         <div class="panel-box screen-mirror-box">
           <div class="panel-title-bar">
-            <h3><span>📺</span> Captura de Pantalla en Directo</h3>
+            <h3>Captura de Pantalla en Directo</h3>
             <div class="screen-controls">
               <label class="auto-refresh-check">
                 <input type="checkbox" id="checkAutoScreenshot">
                 <span>Auto-refresco (3s)</span>
               </label>
-              <button class="btn btn-sm btn-cyan" id="btnTakeScreenshot">📸 Capturar</button>
+              <button class="btn btn-sm btn-cyan" id="btnTakeScreenshot">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                <span>Capturar</span>
+              </button>
             </div>
           </div>
 
@@ -661,7 +727,7 @@
     <section class="tab-content" id="tab-shell">
       <div class="panel-box terminal-panel">
         <div class="panel-title-bar">
-          <h3><span>💻</span> Consola Shell ADB Interactiva</h3>
+          <h3>Consola Shell ADB Interactiva</h3>
           <div class="terminal-quick-cmds">
             <button class="btn btn-xs btn-ghost-preset" data-cmd="getprop">getprop</button>
             <button class="btn btn-xs btn-ghost-preset" data-cmd="df -h">df -h</button>
@@ -713,8 +779,8 @@
   <div class="modal-overlay hidden" id="guideModal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3>📖 Cómo Activar la Depuración por Red en Android TV</h3>
-        <button class="modal-close-btn" id="btnCloseGuide">✕</button>
+        <h3>Cómo Activar la Depuración por Red en Android TV</h3>
+        <button class="modal-close-btn" id="btnCloseGuide" aria-label="Cerrar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
       </div>
       <div class="modal-body">
         <div class="guide-steps">
@@ -722,7 +788,7 @@
             <span class="step-num">1</span>
             <div>
               <strong>Habilitar Opciones de Desarrollador:</strong>
-              <p>En tu Android TV, ve a <em>Ajustes ⚙️ > Preferencias del dispositivo > Información</em> (o <em>Sistema > Acerca de</em> en Google TV).</p>
+              <p>En tu Android TV, ve a <em>Ajustes > Preferencias del dispositivo > Información</em> (o <em>Sistema > Acerca de</em> en Google TV).</p>
               <p>Baja hasta <strong>"Número de compilación"</strong> y presiona el botón central del mando <strong>7 veces seguidas</strong> hasta ver: <em>"¡Ya eres un desarrollador!"</em>.</p>
             </div>
           </div>

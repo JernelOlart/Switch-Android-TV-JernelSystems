@@ -5,7 +5,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
 echo "======================================================="
-echo "  ⚡ NEOSWITCH TV // ANDROID TV STUDIO"
+echo "  NEOSWITCH TV // ANDROID TV STUDIO"
 echo "  Colaboración: Jernel Systems & NeoTech Solutions"
 echo "  GitHub: https://github.com/JernelOlart"
 echo "======================================================="
