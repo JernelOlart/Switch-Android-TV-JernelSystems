@@ -77,13 +77,20 @@ app.get('/api/networks', (req, res) => {
 // 3. Iniciar Escaneo de Red
 app.post('/api/scan', async (req, res) => {
   const { baseSubnet, start = 1, end = 254 } = req.body || {};
+  const startInt = Number(start);
+  const endInt = Number(end);
+
+  if (!Number.isInteger(startInt) || !Number.isInteger(endInt) || startInt < 1 || endInt > 254 || startInt > endInt) {
+    return res.status(400).json({ error: 'Rango de escaneo inválido. Debe cumplir 1 <= start <= end <= 254' });
+  }
+
   if (networkScanner.isScanning) {
     return res.status(400).json({ error: 'Ya hay un escaneo en curso' });
   }
 
   // Responder inmediatamente y ejecutar en segundo plano
   res.json({ message: 'Escaneo iniciado' });
-  networkScanner.scanSubnet(baseSubnet, Number(start), Number(end));
+  networkScanner.scanSubnet(baseSubnet, startInt, endInt);
 });
 
 // 4. Detener Escaneo
@@ -336,6 +343,21 @@ app.post('/api/device/open-url', async (req, res) => {
   if (!url) return res.status(400).json({ error: 'URL requerida' });
   const result = await adbManager.openUrlOnTv(url);
   res.json(result);
+});
+
+// 29. Reinicio Remoto (normal o Recovery)
+app.post('/api/device/tweaks/reboot', async (req, res) => {
+  const { mode = 'reboot' } = req.body || {};
+  const result = await adbManager.reboot(mode);
+  res.json(result);
+});
+
+// Middleware de manejo de errores (debe registrarse tras las rutas)
+app.use((err, req, res, next) => {
+  console.error('Error no manejado en servidor:', err);
+  if (!res.headersSent) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
 });
 
 // Iniciar Servidor

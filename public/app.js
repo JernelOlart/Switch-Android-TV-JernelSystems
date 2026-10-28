@@ -1142,7 +1142,7 @@ document.addEventListener('DOMContentLoaded', () => {
         el.labelLauncherAds.innerText = disable ? 'Bloqueados (Recomendaciones Desactivadas)' : 'Permitidos (Recomendaciones Activas)';
         showToast(data.message, 'success');
       } else {
-        showToast('Error al modificar anuncios del Launcher', 'error');
+        showToast(data.message || 'Error al modificar anuncios del Launcher', 'error');
         e.target.checked = !disable;
       }
     } catch (e) {

@@ -139,36 +139,35 @@ class AdbManager {
     if (!dev) return null;
 
     try {
-      const cmd = `
-        echo "MODEL=$(getprop ro.product.model)"
-        echo "BRAND=$(getprop ro.product.brand)"
-        echo "MANUFACTURER=$(getprop ro.product.manufacturer)"
-        echo "ANDROID_VER=$(getprop ro.build.version.release)"
-        echo "SDK=$(getprop ro.build.version.sdk)"
-        echo "CPU_ABI=$(getprop ro.product.cpu.abi)"
-        echo "BUILD_ID=$(getprop ro.build.id)"
-        echo "DEVICE=$(getprop ro.product.device)"
-        echo "WM_SIZE=$(wm size 2>/dev/null)"
-        echo "WM_DENSITY=$(wm density 2>/dev/null)"
-        echo "ANIM_WIN=$(settings get global window_animation_scale 2>/dev/null)"
-        echo "ANIM_TRANS=$(settings get global transition_animation_scale 2>/dev/null)"
-        echo "ANIM_DUR=$(settings get global animator_duration_scale 2>/dev/null)"
-        echo "STAY_ON=$(settings get global stay_on_while_plugged_in 2>/dev/null)"
-        echo "IP_ADDR=$(ip -f inet addr show wlan0 2>/dev/null | grep -Po 'inet \K[\d.]+' || echo '${dev.split(':')[0]}')"
-      `;
-
-      const res = await this.shell(cmd, dev);
-      if (!res.success) return null;
+      const queries = [
+        ['MODEL', 'getprop ro.product.model'],
+        ['BRAND', 'getprop ro.product.brand'],
+        ['MANUFACTURER', 'getprop ro.product.manufacturer'],
+        ['ANDROID_VER', 'getprop ro.build.version.release'],
+        ['SDK', 'getprop ro.build.version.sdk'],
+        ['CPU_ABI', 'getprop ro.product.cpu.abi'],
+        ['BUILD_ID', 'getprop ro.build.id'],
+        ['DEVICE', 'getprop ro.product.device'],
+        ['WM_SIZE', 'wm size'],
+        ['WM_DENSITY', 'wm density'],
+        ['ANIM_WIN', 'settings get global window_animation_scale'],
+        ['ANIM_TRANS', 'settings get global transition_animation_scale'],
+        ['ANIM_DUR', 'settings get global animator_duration_scale'],
+        ['STAY_ON', 'settings get global stay_on_while_plugged_in']
+      ];
 
       const props = {};
-      res.stdout.split('\n').forEach(line => {
-        const idx = line.indexOf('=');
-        if (idx > -1) {
-          const k = line.substring(0, idx).trim();
-          const v = line.substring(idx + 1).trim();
-          props[k] = v;
+      for (const [key, command] of queries) {
+        const res = await this.shell(command, dev);
+        if (res.success) {
+          props[key] = (res.stdout || '').toString().trim();
         }
-      });
+      }
+
+      const resIp = await this.shell('ip addr show wlan0', dev);
+      const ipLine = (resIp.stdout || '').toString().split('\n').find(l => l.includes('inet ') && !l.includes('inet6'));
+      const ipCandidate = ipLine ? ipLine.trim().substring(ipLine.indexOf('inet ') + 5).split(' ')[0] : '';
+      props.IP_ADDR = ipCandidate ? ipCandidate.split('/')[0] : dev.split(':')[0];
 
       // Parse wm size & density
       const sizeMatch = (props.WM_SIZE || '').match(/Physical size:\s*(\d+x\d+)/i) || (props.WM_SIZE || '').match(/size:\s*(\d+x\d+)/i);
@@ -426,8 +425,9 @@ class AdbManager {
   async getLauncherAdsStatus(target = null) {
     const dev = target || this.connectedDevice;
     if (!dev) return false;
-    const res = await this.shell('pm list packages -d com.google.android.tvrecommendations', dev);
-    return (res.stdout || '').includes('com.google.android.tvrecommendations');
+    const res = await this.shell('pm list packages -d', dev);
+    const lines = (res.stdout || '').toString().split('\n');
+    return lines.some(l => l.trim().replace(/^package:/, '').trim() === 'com.google.android.tvrecommendations');
   }
 
   async toggleLauncherAds(disableAds = true, target = null) {
@@ -436,15 +436,18 @@ class AdbManager {
 
     const cmd = disableAds
       ? 'pm disable-user --user 0 com.google.android.tvrecommendations'
-      : 'pm enable com.google.android.tvrecommendations';
+      : 'pm enable --user 0 com.google.android.tvrecommendations';
 
     const res = await this.shell(cmd, dev);
+    const success = res.success;
     return {
-      success: res.success,
+      success,
       adsDisabled: disableAds,
-      message: disableAds 
-        ? 'Canal de recomendaciones y anuncios del Home desactivado' 
-        : 'Canal de recomendaciones restaurado'
+      message: success
+        ? (disableAds
+          ? 'Canal de recomendaciones y anuncios del Home desactivado'
+          : 'Canal de recomendaciones restaurado')
+        : (res.stderr || res.stdout || `No se pudo ${disableAds ? 'desactivar' : 'restaurar'} las recomendaciones del Home`)
     };
   }
 
@@ -456,6 +459,20 @@ class AdbManager {
     return { success: res.success, limit, message: `Límite de procesos en 2º plano establecido a: ${limit}` };
   }
 
+  async reboot(rebootMode = 'reboot', target = null) {
+    const dev = target || this.connectedDevice;
+    if (!dev) return { success: false, message: 'Dispositivo no conectado' };
+
+    const cmd = rebootMode === 'recovery' ? 'reboot recovery' : 'reboot';
+    const res = await this.shell(cmd, dev);
+
+    return {
+      success: res.success,
+      mode: rebootMode,
+      message: res.success ? `Reinicio ${rebootMode} solicitado en ${dev}` : (res.stderr || 'Error al reiniciar el dispositivo')
+    };
+  }
+
   async downloadAndInstallCuratedApp(appKey, target = null) {
     const dev = target || this.connectedDevice;
     if (!dev) return { success: false, message: 'Dispositivo no conectado' };
@@ -463,13 +480,14 @@ class AdbManager {
     const apps = {
       smarttube: {
         name: 'SmartTube (YouTube Sin Anuncios)',
-        // Enlace oficial de release estable de SmartTube
-        url: 'https://github.com/yuliskov/SmartTube/releases/download/latest/smarttube_stable.apk',
+        repo: 'yuliskov/SmartTube',
+        assetPattern: /SmartTube_stable_.*_arm64-v8a\.apk/,
         filename: 'smarttube_stable.apk'
       },
       projectivy: {
         name: 'Projectivy Launcher (Launcher Limpio)',
-        url: 'https://github.com/spocky/marmitek-remote/raw/master/projectivy.apk', // referencia alternativa o descarga directa
+        repo: 'spocky/miproja1',
+        assetPattern: /release.*\.apk/i,
         filename: 'projectivy.apk'
       }
     };
@@ -478,6 +496,18 @@ class AdbManager {
     if (!targetApp) return { success: false, message: 'App no encontrada en el catálogo curado' };
 
     const tempPath = path.join(os.tmpdir(), targetApp.filename);
+
+    const resolveDownload = async () => {
+      const res = await fetch(`https://api.github.com/repos/${targetApp.repo}/releases/latest`, {
+        headers: { 'User-Agent': 'NeoSwitchTV' }
+      });
+      if (!res.ok) throw new Error(`Error HTTP al consultar la última release de ${targetApp.repo}: ${res.status}`);
+      const data = await res.json();
+      const assets = data.assets || [];
+      const asset = assets.find(a => targetApp.assetPattern ? targetApp.assetPattern.test(a.name) : true) || assets[0];
+      if (!asset) throw new Error(`No se encontró ningún APK en la release ${data.tag_name} de ${targetApp.repo}`);
+      return asset.browser_download_url;
+    };
 
     return new Promise((resolve) => {
       const https = require('https');
@@ -488,15 +518,20 @@ class AdbManager {
 
         const client = fileUrl.startsWith('https') ? https : http;
         client.get(fileUrl, { headers: { 'User-Agent': 'Mozilla/5.0 AndroidTV' } }, (res) => {
+          res.on('error', (err) => resolve({ success: false, message: `Error en la descarga: ${err.message}` }));
           if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
             return downloadFile(res.headers.location, destPath, redirects - 1);
           }
 
           if (res.statusCode !== 200) {
-            return resolve({ success: false, message: `Error HTTP al descargar: ${res.statusCode}` });
+            return resolve({ success: false, message: `Error HTTP al descargar (${res.statusCode}): ${fileUrl.split('?')[0]}` });
           }
 
           const fileStream = fs.createWriteStream(destPath);
+          fileStream.on('error', (err) => {
+            fs.unlink(destPath, () => {});
+            resolve({ success: false, message: `Error al guardar el APK: ${err.message}` });
+          });
           res.pipe(fileStream);
 
           fileStream.on('finish', async () => {
@@ -507,6 +542,7 @@ class AdbManager {
             if (installRes.success) {
               resolve({ success: true, message: `¡${targetApp.name} instalado con éxito en tu Android TV!` });
             } else {
+              fs.unlink(destPath, () => {});
               resolve({ success: false, message: installRes.stderr || 'Error al ejecutar instalación ADB' });
             }
           });
@@ -515,7 +551,9 @@ class AdbManager {
         });
       };
 
-      downloadFile(targetApp.url, tempPath);
+      resolveDownload()
+        .then(url => downloadFile(url, tempPath))
+        .catch(err => resolve({ success: false, message: `Error al resolver la descarga: ${err.message}` }));
     });
   }
 

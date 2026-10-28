@@ -122,6 +122,38 @@ async function main() {
       break;
     }
 
+    case 'launcher-ads': {
+      const action = (args[1] || 'on').toLowerCase();
+      if (action !== 'on' && action !== 'off') {
+        console.error('[ERROR] Acción inválida. Usa: node cli.js launcher-ads [on|off]');
+        process.exit(1);
+      }
+      console.log(`[*] ${action === 'on' ? 'Restaurando' : 'Desactivando'} bloqueo de recomendaciones del Home...`);
+      const res = await adb.toggleLauncherAds(action !== 'on');
+      if (res.success) {
+        console.log(`\x1b[32m[OK] ${res.message}\x1b[0m`);
+      } else {
+        console.error(`\x1b[31m[ERROR] ${res.message}\x1b[0m`);
+      }
+      break;
+    }
+
+    case 'reboot': {
+      const mode = (args[1] || 'reboot').toLowerCase();
+      if (mode !== 'reboot' && mode !== 'recovery') {
+        console.error('[ERROR] Modo inválido. Usa: node cli.js reboot [reboot|recovery]');
+        process.exit(1);
+      }
+      console.log(`[*] Solicitando reinicio (${mode}) en la TV...`);
+      const res = await adb.reboot(mode);
+      if (res.success) {
+        console.log(`\x1b[32m[OK] ${res.message}\x1b[0m`);
+      } else {
+        console.error(`\x1b[31m[ERROR] ${res.message}\x1b[0m`);
+      }
+      break;
+    }
+
     case 'smarttube': {
       console.log('[*] Descargando e instalando la última versión de SmartTube oficial...');
       const res = await adb.downloadAndInstallCuratedApp('smarttube');
@@ -156,6 +188,8 @@ async function main() {
   node cli.js scan                 -> Escanear la subred Wi-Fi
   node cli.js connect <ip>         -> Conectar con la Android TV por ADB (puerto 5555)
   node cli.js adblock [on|off]     -> Activar/Desactivar AdGuard DNS en todo el sistema
+  node cli.js launcher-ads [on|off] -> Desactivar/Reactivar recomendaciones de anuncios del Home
+  node cli.js reboot [reboot|recovery] -> Reiniciar TV o arrancar en Recovery
   node cli.js airplay              -> Iniciar o instalar receptor AirPlay para iPhone
   node cli.js smarttube            -> Descargar e instalar YouTube Sin Anuncios (SmartTube)
   node cli.js tweaks               -> Aplicar tweaks de rendimiento (0.5x animaciones, etc.)

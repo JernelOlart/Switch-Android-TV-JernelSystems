@@ -92,6 +92,8 @@ Herramienta avanzada de auditoría, escaneo de red Wi-Fi, optimización y modifi
    node cli.js airplay              # Iniciar o instalar receptor AirPlay para iPhone
    node cli.js smarttube            # Instalar YouTube Sin Anuncios
    node cli.js tweaks               # Aplicar optimizaciones
+   node cli.js launcher-ads off     # Desactivar/Reactivar recomendaciones de anuncios del Home
+   node cli.js reboot recovery      # Reiniciar TV en modo Recovery
    ```
 
 ---

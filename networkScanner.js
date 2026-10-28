@@ -146,6 +146,12 @@ class NetworkScanner extends EventEmitter {
       return { success: false, message: 'Un escaneo ya está en progreso.' };
     }
 
+    const startInt = Number(start);
+    const endInt = Number(end);
+    if (!Number.isInteger(startInt) || !Number.isInteger(endInt) || startInt < 1 || endInt > 254 || startInt > endInt) {
+      return { success: false, message: 'Rango de escaneo inválido. Debe cumplir 1 <= start <= end <= 254' };
+    }
+
     this.isScanning = true;
     this.abortScan = false;
 
@@ -155,13 +161,13 @@ class NetworkScanner extends EventEmitter {
       baseSubnet = nets.length > 0 ? nets[0].baseSubnet : '192.168.1';
     }
 
-    this.emit('scan_started', { baseSubnet, start, end });
+    this.emit('scan_started', { baseSubnet, start: startInt, end: endInt });
 
     const arpMap = await this.getArpTable();
     const discovered = [];
     const targets = [];
 
-    for (let i = start; i <= end; i++) {
+    for (let i = startInt; i <= endInt; i++) {
       targets.push(`${baseSubnet}.${i}`);
     }
 
@@ -194,6 +200,13 @@ class NetworkScanner extends EventEmitter {
     }
 
     this.isScanning = false;
+
+    if (this.abortScan) {
+      // El escáner fue cancelado por el usuario: notificar cancelación sin falso "completado"
+      this.emit('scan_aborted', {});
+      return { success: true, aborted: true, totalDiscovered: 0, devices: [] };
+    }
+
     this.emit('scan_completed', { totalFound: discovered.length, devices: discovered });
 
     return {
@@ -207,7 +220,6 @@ class NetworkScanner extends EventEmitter {
     if (this.isScanning) {
       this.abortScan = true;
       this.isScanning = false;
-      this.emit('scan_aborted');
       return true;
     }
     return false;
