@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnHeroDisconnect: document.getElementById('btnHeroDisconnect'),
     btnRefreshDeviceInfo: document.getElementById('btnRefreshDeviceInfo'),
     btnFocusScanner: document.getElementById('btnFocusScanner'),
+    btnRestartServer: document.getElementById('btnRestartServer'),
     
     // Tabs
     tabButtons: document.querySelectorAll('.tab-btn'),
@@ -57,6 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
     radarCenterText: document.getElementById('radarCenterText'),
     devicesCountBadge: document.getElementById('devicesCountBadge'),
     discoveredDevicesList: document.getElementById('discoveredDevicesList'),
+    deviceHistoryList: document.getElementById('deviceHistoryList'),
+    historyEmptyText: document.getElementById('historyEmptyText'),
+    historyCountBadge: document.getElementById('historyCountBadge'),
 
     // Pairing
     togglePairingSection: document.getElementById('togglePairingSection'),
@@ -120,9 +124,19 @@ document.addEventListener('DOMContentLoaded', () => {
     btnApplyCustomDns: document.getElementById('btnApplyCustomDns'),
     switchDisableLauncherAds: document.getElementById('switchDisableLauncherAds'),
     labelLauncherAds: document.getElementById('labelLauncherAds'),
+    launcherAdsNote: document.getElementById('launcherAdsNote'),
+    btnOpenTvSettings: document.getElementById('btnOpenTvSettings'),
+    switchPersistDns: document.getElementById('switchPersistDns'),
+    labelPersistDns: document.getElementById('labelPersistDns'),
+    persistDnsNote: document.getElementById('persistDnsNote'),
     btnInstallSmartTube: document.getElementById('btnInstallSmartTube'),
     spinnerSmartTube: document.getElementById('spinnerSmartTube'),
     textSmartTube: document.getElementById('textSmartTube'),
+    btnInstallAdguardTv: document.getElementById('btnInstallAdguardTv'),
+    spinnerAdguardTv: document.getElementById('spinnerAdguardTv'),
+    textAdguardTv: document.getElementById('textAdguardTv'),
+    inputNextDnsId: document.getElementById('inputNextDnsId'),
+    btnApplyNextDns: document.getElementById('btnApplyNextDns'),
     btnInstallProjectivy: document.getElementById('btnInstallProjectivy'),
     spinnerProjectivy: document.getElementById('spinnerProjectivy'),
     textProjectivy: document.getElementById('textProjectivy'),
@@ -141,6 +155,21 @@ document.addEventListener('DOMContentLoaded', () => {
     airPlayStatusDesc: document.getElementById('airPlayStatusDesc'),
     btnLaunchAirScreen: document.getElementById('btnLaunchAirScreen'),
     textAirScreenAction: document.getElementById('textAirScreenAction'),
+    metricAirPlayProfile: document.getElementById('metricAirPlayProfile'),
+    airPlayProfileValue: document.getElementById('airPlayProfileValue'),
+    airPlayProfileDetail: document.getElementById('airPlayProfileDetail'),
+    metricAirPlayRunning: document.getElementById('metricAirPlayRunning'),
+    airPlayRunningValue: document.getElementById('airPlayRunningValue'),
+    airPlayRunningDetail: document.getElementById('airPlayRunningDetail'),
+    metricAirPlayNetwork: document.getElementById('metricAirPlayNetwork'),
+    airPlayNetworkValue: document.getElementById('airPlayNetworkValue'),
+    airPlayNetworkDetail: document.getElementById('airPlayNetworkDetail'),
+    metricAirPlayIp: document.getElementById('metricAirPlayIp'),
+    airPlayIpValue: document.getElementById('airPlayIpValue'),
+    airPlayIpDetail: document.getElementById('airPlayIpDetail'),
+    btnScanAirPlayNetwork: document.getElementById('btnScanAirPlayNetwork'),
+    airPlayScanNote: document.getElementById('airPlayScanNote'),
+    airPlayHint: document.getElementById('airPlayHint'),
     inputDirectUrl: document.getElementById('inputDirectUrl'),
     btnSendDirectUrl: document.getElementById('btnSendDirectUrl'),
 
@@ -171,6 +200,34 @@ document.addEventListener('DOMContentLoaded', () => {
       toast.style.transform = 'translateY(10px)';
       setTimeout(() => toast.remove(), 300);
     }, 4000);
+  }
+
+  // --- Utilidades de presentación ---
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function formatRelativeTime(isoDate) {
+    const time = new Date(isoDate).getTime();
+    if (!Number.isFinite(time)) return 'fecha desconocida';
+
+    const diffMinutes = Math.floor((Date.now() - time) / 60000);
+    if (diffMinutes < 1) return 'hace unos segundos';
+    if (diffMinutes < 60) return `hace ${diffMinutes} min`;
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `hace ${diffHours} h`;
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return 'ayer';
+    if (diffDays < 30) return `hace ${diffDays} días`;
+
+    return new Date(time).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   // --- WebSocket Setup ---
@@ -453,6 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (data.success) {
         showToast(data.message, 'success');
         await fetchStatus();
+        loadDeviceHistory();
       } else {
         showToast(data.message || 'Error al conectar', 'error');
         // Abrir guía si falló
@@ -467,6 +525,149 @@ document.addEventListener('DOMContentLoaded', () => {
     const ip = el.inputManualIp.value.trim();
     const port = el.inputManualPort.value.trim() || 5555;
     connectToDevice(ip, port);
+  });
+
+  // --- Historial de Dispositivos ---
+  function renderDeviceHistory(devices) {
+    const entries = Array.isArray(devices) ? devices : [];
+
+    el.historyCountBadge.innerText = String(entries.length);
+    el.historyEmptyText.classList.toggle('hidden', entries.length > 0);
+    el.deviceHistoryList.innerHTML = '';
+
+    entries.forEach(device => {
+      const item = document.createElement('div');
+      item.className = 'history-item';
+
+      const model = device.model || device.target || device.ip;
+      const brand = device.brand || '';
+      const androidVersion = device.androidVersion || '';
+      const detail = [brand, androidVersion ? `Android ${androidVersion}` : ''].filter(Boolean).join(' · ');
+      const lastConnected = device.lastConnected || '';
+
+      item.innerHTML = `
+        <div class="history-item-main">
+          <div class="history-item-title">
+            <span>${escapeHtml(model)}</span>
+            ${lastConnected ? `<span class="history-time">${escapeHtml(formatRelativeTime(lastConnected))}</span>` : ''}
+          </div>
+          <div class="history-item-sub">
+            <span class="mono">${escapeHtml(device.ip)}:${escapeHtml(device.port)}</span>
+            ${detail ? ` · ${escapeHtml(detail)}` : ''}
+          </div>
+        </div>
+        <div class="history-actions">
+          <button class="btn btn-cyan" data-history-connect title="Conectar a este dispositivo">Conectar</button>
+          <button class="btn-history-remove" data-history-remove title="Quitar del historial" aria-label="Quitar del historial">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      `;
+
+      item.querySelector('[data-history-connect]').addEventListener('click', async () => {
+        el.inputManualIp.value = device.ip;
+        el.inputManualPort.value = device.port;
+        await connectToDevice(device.ip, device.port);
+      });
+
+      item.querySelector('[data-history-remove]').addEventListener('click', async () => {
+        try {
+          const res = await fetch('/api/devices/history/remove', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: `${device.ip}:${device.port}` })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast('Dispositivo eliminado del historial', 'success');
+            renderDeviceHistory(data.devices);
+          } else {
+            showToast('No se encontró el dispositivo en el historial', 'error');
+          }
+        } catch (e) {
+          showToast('Error al actualizar el historial', 'error');
+        }
+      });
+
+      el.deviceHistoryList.appendChild(item);
+    });
+  }
+
+  async function loadDeviceHistory() {
+    try {
+      const res = await fetch('/api/devices/history');
+      const data = await res.json();
+      renderDeviceHistory(data.devices);
+    } catch (e) {
+      console.error('No se pudo cargar el historial de dispositivos:', e);
+    }
+  }
+
+  // --- Reinicio del Servidor ---
+  async function getServerBootId() {
+    try {
+      const res = await fetch('/api/status', { cache: 'no-store' });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.bootId || null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function waitForServerRestart(previousBootId, maxWaitMs = 20000) {
+    const startedAt = Date.now();
+    let sawFailure = false;
+
+    while (Date.now() - startedAt < maxWaitMs) {
+      await new Promise(resolve => setTimeout(resolve, 700));
+
+      const bootId = await getServerBootId();
+      if (!bootId) {
+        sawFailure = true; // El servidor anterior ya se cerró
+        continue;
+      }
+
+      if (previousBootId) {
+        if (bootId !== previousBootId) return true;
+      } else if (sawFailure) {
+        // Servidor previo sin bootId (versión anterior): exigir un corte real
+        return true;
+      }
+    }
+    return false;
+  }
+
+  el.btnRestartServer.addEventListener('click', async () => {
+    const confirmed = window.confirm('¿Reiniciar el servidor de NeoSwitch TV? Las operaciones en curso se interrumpirán.');
+    if (!confirmed) return;
+
+    el.btnRestartServer.disabled = true;
+    showToast('Reiniciando el servidor...', 'info');
+
+    const previousBootId = await getServerBootId();
+
+    try {
+      const res = await fetch('/api/server/restart', { method: 'POST' });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showToast(data.error || 'No se pudo reiniciar el servidor', 'error');
+        el.btnRestartServer.disabled = false;
+        return;
+      }
+    } catch (e) {
+      // La conexión puede cortarse antes de recibir la respuesta; se valida con el sondeo
+    }
+
+    const recovered = await waitForServerRestart(previousBootId);
+    if (recovered) {
+      showToast('Servidor reiniciado. Recargando panel...', 'success');
+      setTimeout(() => window.location.reload(), 600);
+    } else {
+      showToast('El servidor no respondió a tiempo. Recarga la página manualmente.', 'error');
+      el.btnRestartServer.disabled = false;
+    }
   });
 
   // Desconexión
@@ -1044,6 +1245,31 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- MÓDULO AD-BLOCK & PRIVACIDAD                          ---
   // ==========================================================
 
+  function applyLauncherAdsUi(info, disabled) {
+    const canToggle = !info || info.canToggle !== false;
+    const adsDisabled = !!disabled;
+
+    el.switchDisableLauncherAds.checked = adsDisabled;
+    el.switchDisableLauncherAds.disabled = !canToggle;
+
+    if (!canToggle) {
+      el.labelLauncherAds.innerText = info && info.isGoogleTv
+        ? 'Controlado por Google TV'
+        : 'Controlado por el sistema';
+      el.launcherAdsNote.innerText = info && info.isGoogleTv
+        ? 'En Google TV las recomendaciones y anuncios los dibuja el launcher del sistema, así que este ajuste no se puede cambiar por ADB. Alternativas: activa "Modo solo apps" en Ajustes o usa Projectivy Launcher.'
+        : `${(info && info.reason) || 'El sistema controla este ajuste y Android no permite cambiarlo desde ADB.'} Alternativas: "Modo solo apps" en Ajustes o Projectivy Launcher.`;
+      el.launcherAdsNote.classList.remove('hidden');
+      el.btnOpenTvSettings.classList.remove('hidden');
+    } else {
+      el.labelLauncherAds.innerText = adsDisabled
+        ? 'Bloqueados (Recomendaciones Desactivadas)'
+        : 'Permitidos (Recomendaciones Activas)';
+      el.launcherAdsNote.classList.add('hidden');
+      el.btnOpenTvSettings.classList.add('hidden');
+    }
+  }
+
   async function fetchAdblockStatus() {
     if (!state.connectedDevice) return;
     try {
@@ -1064,11 +1290,19 @@ document.addEventListener('DOMContentLoaded', () => {
           if (
             (p === 'adguard' && dns.specifier.includes('dns.adguard')) ||
             (p === 'adguard-family' && dns.specifier.includes('family.adguard')) ||
-            (p === 'mullvad' && dns.specifier.includes('mullvad'))
+            (p === 'mullvad' && dns.specifier.includes('mullvad')) ||
+            (p === 'nextdns' && dns.specifier.includes('dns.nextdns.io'))
           ) {
             card.classList.add('active-dns');
           }
         });
+
+        if (dns.specifier.includes('dns.nextdns.io')) {
+          const id = dns.specifier.replace(/\.dns\.nextdns\.io$/i, '');
+          if (id && document.activeElement !== el.inputNextDnsId) {
+            el.inputNextDnsId.value = id;
+          }
+        }
       } else {
         el.dnsStatusBadge.className = 'badge badge-counter';
         el.dnsStatusBadge.innerText = `MODO: ${dns.mode || 'Automático'} (Sin Filtro)`;
@@ -1078,10 +1312,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Estado de Launcher Ads
       const adsDisabled = !!data.launcherAdsDisabled;
-      el.switchDisableLauncherAds.checked = adsDisabled;
-      el.labelLauncherAds.innerText = adsDisabled ? 'Bloqueados (Recomendaciones Desactivadas)' : 'Permitidos (Recomendaciones Activas)';
+      applyLauncherAdsUi(data.launcherAds, adsDisabled);
+
+      // Persistencia del DNS tras reinicios
+      applyPersistenceUi(data.persistence, data.guard);
     } catch (e) {
       console.error('Error al obtener estado de Ad-Block:', e);
+    }
+  }
+
+  function applyPersistenceUi(persistence, guard) {
+    const enabled = !!(guard && guard.enabled);
+    const supported = !!(persistence && persistence.supported);
+    const installed = !!(persistence && persistence.installed);
+    const host = (guard && guard.host) || (persistence && persistence.host) || '';
+
+    el.switchPersistDns.checked = enabled;
+    el.persistDnsNote.classList.add('hidden');
+    el.persistDnsNote.innerText = '';
+
+    if (!state.connectedDevice) {
+      el.labelPersistDns.innerText = 'Conecta tu Android TV';
+      return;
+    }
+
+    if (enabled && installed) {
+      el.labelPersistDns.innerText = `Activo · Script de arranque (root)${host ? ' · ' + host : ''}`;
+      el.persistDnsNote.innerText = 'La propia TV reaplica el DNS en cada arranque, aunque NeoSwitch esté cerrado.';
+      el.persistDnsNote.classList.remove('hidden');
+      return;
+    }
+
+    if (enabled) {
+      el.labelPersistDns.innerText = `Activo · Vigilancia del servidor${host ? ' · ' + host : ''}`;
+      el.persistDnsNote.innerText = supported
+        ? 'Vigilancia activa: NeoSwitch reaplica el DNS al reconectar. Mantén el servidor abierto para que sobreviva a los reinicios.'
+        : 'Sin root/Magisk la TV no puede reaplicar el DNS por sí sola: NeoSwitch lo hace al reconectar. Mantén el servidor abierto o usa root para persistencia real.';
+      el.persistDnsNote.classList.remove('hidden');
+      return;
+    }
+
+    el.labelPersistDns.innerText = 'Inactivo';
+    if (!supported) {
+      el.persistDnsNote.innerText = 'Con root/Magisk se instala un script de arranque en la TV. Sin root, activa esta opción para que el servidor vigile y reaplique el DNS.';
+      el.persistDnsNote.classList.remove('hidden');
     }
   }
 
@@ -1121,6 +1395,19 @@ document.addEventListener('DOMContentLoaded', () => {
     applyDnsProvider('custom', host);
   });
 
+  // NextDNS: el usuario pega su ID y se construye el host DoT
+  el.btnApplyNextDns.addEventListener('click', async () => {
+    let id = el.inputNextDnsId.value.trim().toLowerCase();
+    id = id.replace(/^https?:\/\//, '').replace(/\.dns\.nextdns\.io\/?$/i, '');
+
+    if (!/^[a-z0-9]{5,32}$/.test(id)) {
+      return showToast('Ingresa tu ID de NextDNS (solo letras y números, ej: abc123)', 'error');
+    }
+
+    await applyDnsProvider('custom', `${id}.dns.nextdns.io`);
+    showToast('En nextdns.io activa HaGeZi Multi Pro++ y OISD Full para el filtrado agresivo.', 'info');
+  });
+
   // Switch de Recomendaciones y Anuncios del Home
   el.switchDisableLauncherAds.addEventListener('change', async (e) => {
     if (!state.connectedDevice) {
@@ -1139,14 +1426,73 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const data = await res.json();
       if (data.success) {
-        el.labelLauncherAds.innerText = disable ? 'Bloqueados (Recomendaciones Desactivadas)' : 'Permitidos (Recomendaciones Activas)';
+        applyLauncherAdsUi({ canToggle: data.canToggle !== false, isGoogleTv: data.isGoogleTv }, disable);
         showToast(data.message, 'success');
       } else {
         showToast(data.message || 'Error al modificar anuncios del Launcher', 'error');
-        e.target.checked = !disable;
+        // Reflejar el estado real del dispositivo si el backend lo conoce
+        if (typeof data.adsDisabled === 'boolean') {
+          applyLauncherAdsUi(
+            { canToggle: data.canToggle !== false, isGoogleTv: data.isGoogleTv, reason: data.message },
+            data.adsDisabled
+          );
+        } else {
+          e.target.checked = !disable;
+        }
       }
     } catch (e) {
       showToast('Error en la petición', 'error');
+    }
+  });
+
+  // Switch de Persistencia del DNS tras reinicios
+  el.switchPersistDns.addEventListener('change', async (e) => {
+    if (!state.connectedDevice) {
+      e.target.checked = !e.target.checked;
+      return showToast('Conecta tu Android TV primero', 'error');
+    }
+
+    const enabled = e.target.checked;
+    e.target.disabled = true;
+    showToast(enabled ? 'Activando bloqueo permanente...' : 'Desactivando bloqueo permanente...', 'info');
+
+    try {
+      const res = await fetch('/api/device/adblock/persist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled, installBootScript: true })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast(data.message, 'success');
+        if (enabled && data.bootScript && data.bootScript.supported === false) {
+          showToast('Sin root/Magisk: se usará la vigilancia del servidor', 'info');
+        }
+        await fetchAdblockStatus();
+      } else {
+        showToast(data.message || 'No se pudo cambiar la persistencia', 'error');
+        e.target.checked = !enabled;
+        applyPersistenceUi(data.persistence, data.guard);
+      }
+    } catch (err) {
+      e.target.checked = !enabled;
+      showToast('Error de conexión al cambiar la persistencia', 'error');
+    } finally {
+      e.target.disabled = false;
+    }
+  });
+
+  // Abrir los Ajustes de la TV (para activar "Modo solo apps")
+  el.btnOpenTvSettings.addEventListener('click', async () => {
+    if (!state.connectedDevice) return showToast('Conecta tu Android TV primero', 'error');
+
+    try {
+      const res = await fetch('/api/device/settings/open', { method: 'POST' });
+      const data = await res.json();
+      showToast(data.message, data.success ? 'success' : 'error');
+    } catch (e) {
+      showToast('No se pudieron abrir los Ajustes de la TV', 'error');
     }
   });
 
@@ -1181,6 +1527,40 @@ document.addEventListener('DOMContentLoaded', () => {
     } finally {
       el.btnInstallSmartTube.disabled = false;
       el.spinnerSmartTube.classList.add('hidden');
+    }
+  });
+
+  // Instalación de AdGuard para Android TV en 1-Clic
+  el.btnInstallAdguardTv.addEventListener('click', async () => {
+    if (!state.connectedDevice) return showToast('Conecta tu Android TV primero', 'error');
+
+    el.btnInstallAdguardTv.disabled = true;
+    el.spinnerAdguardTv.classList.remove('hidden');
+    el.textAdguardTv.innerText = 'Descargando e instalando AdGuard TV oficial...';
+
+    showToast('Descargando la última versión oficial de AdGuard para Android TV...', 'info');
+
+    try {
+      const res = await fetch('/api/device/apps/install-curated', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appKey: 'adguard-tv' })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast(data.message, 'success');
+        el.textAdguardTv.innerText = '¡AdGuard TV Instalado!';
+      } else {
+        showToast(data.message || 'Error al instalar AdGuard TV', 'error');
+        el.textAdguardTv.innerText = 'Instalar AdGuard TV en 1-Clic';
+      }
+    } catch (e) {
+      showToast('Error de conexión', 'error');
+      el.textAdguardTv.innerText = 'Instalar AdGuard TV en 1-Clic';
+    } finally {
+      el.btnInstallAdguardTv.disabled = false;
+      el.spinnerAdguardTv.classList.add('hidden');
     }
   });
 
@@ -1242,6 +1622,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // --- Soporte AirPlay iPhone & AirScreen ---
+  function setAirPlayMetric(container, valueEl, detailEl, state, value, detail) {
+    if (container) container.dataset.state = state;
+    if (valueEl) valueEl.innerText = value;
+    if (detailEl) detailEl.innerText = detail;
+  }
+
   async function checkAirPlayStatus() {
     if (!state.connectedDevice) {
       if (el.airPlayStatusBadge) el.airPlayStatusBadge.innerText = 'Desconectado';
@@ -1251,44 +1637,149 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const res = await fetch('/api/device/airplay/status');
       const data = await res.json();
-      if (data.installed) {
+
+      if (!data.success) {
         if (el.airPlayStatusBadge) {
-          el.airPlayStatusBadge.innerText = 'Instalado & Listo';
-          el.airPlayStatusBadge.className = 'badge badge-leaf';
-        }
-        if (el.airPlayStatusTitle) el.airPlayStatusTitle.innerText = 'AirScreen está Instalado en tu Android TV';
-        if (el.airPlayStatusDesc) el.airPlayStatusDesc.innerText = 'Receptor AirPlay listo para recibir pantalla en vivo, música o videos desde tu iPhone.';
-        if (el.textAirScreenAction) el.textAirScreenAction.innerText = 'Iniciar AirScreen en TV';
-      } else {
-        if (el.airPlayStatusBadge) {
-          el.airPlayStatusBadge.innerText = 'No Instalado';
+          el.airPlayStatusBadge.innerText = 'Sin datos';
           el.airPlayStatusBadge.className = 'badge badge-counter';
         }
-        if (el.airPlayStatusTitle) el.airPlayStatusTitle.innerText = 'Receptor AirScreen no detectado';
-        if (el.airPlayStatusDesc) el.airPlayStatusDesc.innerText = 'Haz clic abajo para abrir la instalación oficial de Google Play Store directamente en tu TV.';
-        if (el.textAirScreenAction) el.textAirScreenAction.innerText = 'Instalar desde Play Store en TV';
+        return;
+      }
+
+      const currentUser = data.currentUser;
+      const userLabel = `Usuario ${currentUser}`;
+
+      if (data.installedForUser) {
+        setAirPlayMetric(el.metricAirPlayProfile, el.airPlayProfileValue, el.airPlayProfileDetail,
+          'ok', 'Instalado', `${userLabel} · AirScreen ${data.version || ''}`.trim());
+      } else if (data.installedAnywhere) {
+        setAirPlayMetric(el.metricAirPlayProfile, el.airPlayProfileValue, el.airPlayProfileDetail,
+          'warn', 'Otro perfil', `Solo existe en un perfil distinto de ${userLabel}`);
+      } else {
+        setAirPlayMetric(el.metricAirPlayProfile, el.airPlayProfileValue, el.airPlayProfileDetail,
+          'off', 'No instalado', `${userLabel} · sin receptor AirPlay`);
+      }
+
+      if (data.musicPlaying) {
+        setAirPlayMetric(el.metricAirPlayRunning, el.airPlayRunningValue, el.airPlayRunningDetail,
+          'ok', 'Reproduciendo', `Audio activo · pid ${data.pid}`);
+      } else if (data.running) {
+        setAirPlayMetric(el.metricAirPlayRunning, el.airPlayRunningValue, el.airPlayRunningDetail,
+          'ok', 'En ejecución', data.foreground ? `En pantalla · pid ${data.pid}` : `Segundo plano · pid ${data.pid}`);
+      } else if (data.installedForUser) {
+        setAirPlayMetric(el.metricAirPlayRunning, el.airPlayRunningValue, el.airPlayRunningDetail,
+          'warn', 'Detenido', 'El receptor está instalado pero no corre');
+      } else {
+        setAirPlayMetric(el.metricAirPlayRunning, el.airPlayRunningValue, el.airPlayRunningDetail,
+          'off', 'Apagado', 'Sin receptor que iniciar');
+      }
+
+      setAirPlayMetric(el.metricAirPlayIp, el.airPlayIpValue, el.airPlayIpDetail,
+        data.tvIp ? 'ok' : 'warn',
+        data.tvIp || 'Sin IP',
+        data.tvIp ? 'Misma Wi-Fi que el iPhone' : 'No se pudo leer la red de la TV');
+
+      if (data.ready) {
+        if (el.airPlayStatusBadge) {
+          el.airPlayStatusBadge.innerText = 'AirPlay listo';
+          el.airPlayStatusBadge.className = 'badge badge-leaf';
+        }
+        if (el.airPlayStatusTitle) el.airPlayStatusTitle.innerText = 'AirPlay activo: tu iPhone ya puede enviar Apple Music';
+        if (el.airPlayStatusDesc) el.airPlayStatusDesc.innerText = 'Abre Apple Music en el iPhone, toca el icono AirPlay y elige esta TV. El sonido sale por la TV.';
+        if (el.textAirScreenAction) el.textAirScreenAction.innerText = 'Reabrir receptor en la TV';
+        if (el.airPlayHint) el.airPlayHint.innerText = 'El receptor está escuchando. Si el iPhone no lo ve, pulsa «Comprobar red» para verificar que la TV se anuncia en tu Wi-Fi.';
+      } else if (data.installedForUser) {
+        if (el.airPlayStatusBadge) {
+          el.airPlayStatusBadge.innerText = 'Receptor detenido';
+          el.airPlayStatusBadge.className = 'badge badge-counter';
+        }
+        if (el.airPlayStatusTitle) el.airPlayStatusTitle.innerText = 'El receptor AirPlay está instalado pero apagado';
+        if (el.airPlayStatusDesc) el.airPlayStatusDesc.innerText = 'Pulsa «Activar Modo Apple Music» para abrirlo y dejarlo escuchando en la TV.';
+        if (el.textAirScreenAction) el.textAirScreenAction.innerText = 'Activar Modo Apple Music';
+      } else {
+        if (el.airPlayStatusBadge) {
+          el.airPlayStatusBadge.innerText = 'No instalado';
+          el.airPlayStatusBadge.className = 'badge badge-counter';
+        }
+        if (el.airPlayStatusTitle) el.airPlayStatusTitle.innerText = 'Receptor AirPlay no detectado';
+        if (el.airPlayStatusDesc) el.airPlayStatusDesc.innerText = 'El botón abrirá la página oficial del receptor en Play Store, en la pantalla de la TV.';
+        if (el.textAirScreenAction) el.textAirScreenAction.innerText = 'Instalar receptor desde Play Store';
       }
     } catch (e) {
       console.warn('Error al verificar estado de AirPlay:', e);
     }
   }
 
+  async function scanAirPlayNetwork() {
+    if (!state.connectedDevice) return showToast('Conecta tu Android TV primero', 'error');
+    if (!el.btnScanAirPlayNetwork) return;
+
+    el.btnScanAirPlayNetwork.disabled = true;
+    if (el.airPlayScanNote) el.airPlayScanNote.innerText = 'Buscando receptores AirPlay en la red…';
+    setAirPlayMetric(el.metricAirPlayNetwork, el.airPlayNetworkValue, el.airPlayNetworkDetail,
+      'unknown', 'Buscando…', 'Consultando mDNS');
+
+    try {
+      const res = await fetch('/api/network/airplay/scan');
+      const data = await res.json();
+
+      if (!data.supported) {
+        setAirPlayMetric(el.metricAirPlayNetwork, el.airPlayNetworkValue, el.airPlayNetworkDetail,
+          'warn', 'No disponible', 'Este equipo no puede consultar mDNS');
+        if (el.airPlayScanNote) el.airPlayScanNote.innerText = data.message || '';
+        return;
+      }
+
+      if (data.tvVisible) {
+        setAirPlayMetric(el.metricAirPlayNetwork, el.airPlayNetworkValue, el.airPlayNetworkDetail,
+          'ok', 'Visible', `Anunciada como «${data.tvReceiver.name}»`);
+        if (el.airPlayScanNote) {
+          const extra = (data.receivers || []).length - 1;
+          el.airPlayScanNote.innerText = extra > 0
+            ? `Detectada en tu Wi-Fi. Además hay ${extra} receptor(es) más en la red.`
+            : 'Detectada en tu Wi-Fi. El iPhone debería verla en AirPlay.';
+        }
+        showToast('La TV está anunciando AirPlay en tu red', 'success');
+      } else {
+        setAirPlayMetric(el.metricAirPlayNetwork, el.airPlayNetworkValue, el.airPlayNetworkDetail,
+          'off', 'No visible', 'La TV no se anuncia por mDNS');
+        if (el.airPlayScanNote) el.airPlayScanNote.innerText = 'El receptor no se anuncia: ábrelo en la TV o revisa que el router no aísle a los dispositivos.';
+        showToast('La TV no se anuncia en la red. Abre el receptor en la TV.', 'error');
+      }
+    } catch (e) {
+      if (el.airPlayScanNote) el.airPlayScanNote.innerText = 'No se pudo consultar la red';
+      showToast('Error al comprobar la red AirPlay', 'error');
+    } finally {
+      el.btnScanAirPlayNetwork.disabled = false;
+    }
+  }
+
+  if (el.btnScanAirPlayNetwork) {
+    el.btnScanAirPlayNetwork.addEventListener('click', scanAirPlayNetwork);
+  }
+
   if (el.btnLaunchAirScreen) {
     el.btnLaunchAirScreen.addEventListener('click', async () => {
       if (!state.connectedDevice) return showToast('Conecta tu Android TV primero', 'error');
 
-      showToast('Enviando comando a tu TV...', 'info');
+      el.btnLaunchAirScreen.disabled = true;
+      showToast('Preparando el receptor AirPlay en tu TV...', 'info');
       try {
         const res = await fetch('/api/device/airplay/setup', { method: 'POST' });
         const data = await res.json();
+
         if (data.success) {
           showToast(data.message, 'success');
-          setTimeout(checkAirPlayStatus, 2000);
+          await checkAirPlayStatus();
+          setTimeout(scanAirPlayNetwork, 1200);
         } else {
-          showToast(data.message || 'Error al ejecutar comando de AirPlay', 'error');
+          showToast(data.message || 'No se pudo activar AirPlay', 'error');
+          await checkAirPlayStatus();
         }
       } catch (e) {
         showToast('Error de conexión con el servidor', 'error');
+      } finally {
+        el.btnLaunchAirScreen.disabled = false;
       }
     });
   }
@@ -1326,4 +1817,5 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Inicialización ---
   initWebSocket();
   fetchStatus();
+  loadDeviceHistory();
 });

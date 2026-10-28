@@ -30,6 +30,10 @@
           <span class="status-dot disconnected" id="globalStatusDot"></span>
           <span class="status-label" id="globalStatusText">Sin TV conectada</span>
         </div>
+        <button class="btn btn-outline" id="btnRestartServer" title="Reiniciar el servidor de NeoSwitch">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><polyline points="3 4 3 10 9 10"></polyline></svg>
+          <span>Reiniciar Servidor</span>
+        </button>
         <button class="btn btn-outline" id="btnOpenGuide" title="Guía de activación ADB">
           <span>Guía de Conexión</span>
         </button>
@@ -169,6 +173,21 @@
               <input type="number" class="cyber-input input-port" id="inputManualPort" value="5555" />
               <button class="btn btn-cyan" id="btnConnectManual">Conectar</button>
             </div>
+          </div>
+
+          <!-- Historial de Dispositivos -->
+          <div class="device-history-box">
+            <div class="history-header">
+              <span class="history-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline><polyline points="12 7 12 12 15 14"></polyline></svg>
+                Historial de Dispositivos
+              </span>
+              <span class="badge badge-counter" id="historyCountBadge">0</span>
+            </div>
+            <div class="history-list" id="deviceHistoryList"></div>
+            <p class="hint-text history-empty" id="historyEmptyText">
+              Aún no hay dispositivos. Al conectar una TV aparecerá aquí para reconectarla con un clic.
+            </p>
           </div>
 
           <!-- Emparejamiento Inalámbrico Android 11+ -->
@@ -500,6 +519,20 @@
               <button class="btn btn-sm btn-cyan btn-apply-dns" data-provider="mullvad">Activar en TV</button>
             </div>
 
+            <!-- NextDNS (listas agresivas) -->
+            <div class="dns-provider-card" data-provider="nextdns">
+              <div class="provider-top">
+                <span class="provider-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </span>
+                <span class="badge badge-glow">MÁS AGRESIVO</span>
+              </div>
+              <h4>NextDNS</h4>
+              <p>Listas HaGeZi Pro++ y OISD Full, protección antirrastreo y bloqueo de evasión. Gratis hasta 300k consultas/mes.</p>
+              <input type="text" class="cyber-input dns-mini-input" id="inputNextDnsId" placeholder="Tu ID de NextDNS (ej: abc123)" />
+              <button class="btn btn-sm btn-purple" id="btnApplyNextDns">Activar NextDNS</button>
+            </div>
+
             <!-- Restablecer / Automático -->
             <div class="dns-provider-card" data-provider="auto">
               <div class="provider-top">
@@ -523,11 +556,39 @@
               <button class="btn btn-cyan" id="btnApplyCustomDns">Aplicar DNS Personalizado</button>
             </div>
           </div>
+
+          <p class="tweak-note adblock-scope-note">
+            <strong>Qué bloquea el DNS:</strong> anuncios, banners, popups y telemetría de apps y juegos que cargan publicidad desde dominios externos.
+            <strong>Qué no puede bloquear:</strong> YouTube, Netflix, Prime Video, Disney+ y Spotify insertan sus anuncios desde el mismo dominio del video o de la cuenta, así que el DNS no los corta. Para YouTube usa <strong>SmartTube</strong>; para el Home, <strong>Projectivy Launcher</strong> o el «Modo solo apps».
+          </p>
         </div>
 
         <!-- Fila de Herramientas Complementarias de Bloqueo -->
         <div class="adblock-subgrid">
           
+          <!-- Persistencia del DNS tras reinicios -->
+          <div class="tweak-card">
+            <div class="tweak-card-header">
+              <div class="tweak-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              </div>
+              <div>
+                <h4>Bloqueo Permanente tras Reiniciar</h4>
+                <p>Mantiene el DNS anti-anuncios activo cuando la TV se reinicia o cambia de red. Con root + Magisk instala un script de arranque; sin root, este servidor lo reaplica al reconectar.</p>
+              </div>
+            </div>
+            <div class="tweak-card-body">
+              <div class="toggle-switch-wrapper">
+                <label class="switch">
+                  <input type="checkbox" id="switchPersistDns">
+                  <span class="slider round"></span>
+                </label>
+                <span class="switch-label" id="labelPersistDns">Consultando estado...</span>
+              </div>
+              <p class="tweak-note hidden" id="persistDnsNote"></p>
+            </div>
+          </div>
+
           <!-- Bloqueo de Anuncios en Home / Google TV -->
           <div class="tweak-card">
             <div class="tweak-card-header">
@@ -547,6 +608,11 @@
                 </label>
                 <span class="switch-label" id="labelLauncherAds">Consultando estado...</span>
               </div>
+              <p class="tweak-note hidden" id="launcherAdsNote"></p>
+              <button class="btn btn-sm btn-outline hidden" id="btnOpenTvSettings">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Abrir Ajustes de la TV</span>
+              </button>
             </div>
           </div>
 
@@ -566,6 +632,26 @@
                 <span class="btn-spinner hidden" id="spinnerSmartTube"></span>
                 <span id="textSmartTube">Instalar SmartTube en 1-Clic</span>
               </button>
+            </div>
+          </div>
+
+          <!-- AdGuard para Android TV: filtrado agresivo con VPN local -->
+          <div class="tweak-card">
+            <div class="tweak-card-header">
+              <div class="tweak-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+              </div>
+              <div>
+                <h4>AdGuard para Android TV (Filtrado Agresivo)</h4>
+                <p>VPN local con filtrado DNS + HTTPS, firewall por app y arranque automático. Más agresivo que el DNS privado; APK oficial. Incluye 14 días de prueba y luego requiere licencia.</p>
+              </div>
+            </div>
+            <div class="tweak-card-body">
+              <button class="btn btn-purple" id="btnInstallAdguardTv">
+                <span class="btn-spinner hidden" id="spinnerAdguardTv"></span>
+                <span id="textAdguardTv">Instalar AdGuard TV en 1-Clic</span>
+              </button>
+              <p class="tweak-note">Solo puede haber una VPN activa: si usas AdGuard, deja el DNS privado en Automático para evitar conflictos.</p>
             </div>
           </div>
 
@@ -611,6 +697,47 @@
 
         </div>
 
+        <!-- Guía: filtrado a nivel de red para todos los dispositivos -->
+        <div class="panel-box adblock-guide-box">
+          <details>
+            <summary>
+              <span>Guía: bloquear anuncios en toda la casa (router TP-Link, AdGuard Home o Pi-hole)</span>
+              <span class="badge badge-cyan">NIVEL MÁXIMO</span>
+            </summary>
+            <div class="guide-body">
+              <p>Filtrar en el router cubre todos los dispositivos (TV, móviles, consolas) y sobrevive a cualquier reinicio de la TV. El alcance depende del modelo de TP-Link.</p>
+
+              <h5>TP-Link Archer / Deco con firmware original</h5>
+              <ol>
+                <li>Entra al router (<code>http://192.168.0.1</code> o <code>http://tplinkwifi.net</code>).</li>
+                <li>Busca <strong>DHCP</strong> o <strong>LAN → Servidor DHCP</strong> y pon como DNS primario y secundario los de AdGuard: <code>94.140.14.14</code> y <code>94.140.15.15</code>. En Deco suele estar en <strong>Más → Avanzado → Servidor DHCP</strong>.</li>
+                <li>Guarda y renueva la conexión de la TV (o reiníciala). En la TV deja <strong>DNS privado en Automático</strong>.</li>
+                <li>Si prefieres un filtro propio, monta <strong>AdGuard Home</strong> o <strong>Pi-hole</strong> en una Raspberry Pi y pon la IP de la Pi como DNS del DHCP.</li>
+              </ol>
+              <p><strong>Importante:</strong> el firmware original de TP-Link no permite redirigir el puerto 53 ni bloquear DoT/DoH por firewall. HomeShield sirve para control parental, no es un bloqueador de anuncios real. Aun así, la mayoría de apps de TV usan el DNS del sistema y quedan cubiertas.</p>
+
+              <h5>TP-Link con OpenWrt u Omada (modo agresivo)</h5>
+              <ol>
+                <li>Instala AdGuard Home en el router o en una Raspberry Pi.</li>
+                <li>En <strong>Filtros → DNS</strong> añade <strong>HaGeZi Multi Pro++</strong> y <strong>OISD Full</strong>.</li>
+                <li>Redirige el puerto <strong>53 TCP/UDP</strong> al AdGuard Home y bloquea la salida al puerto <strong>853 (DoT)</strong>.</li>
+                <li>Entrega por DHCP la IP del AdGuard Home como único DNS.</li>
+              </ol>
+              <pre><code>iptables -t nat -A PREROUTING -i br-lan -p udp --dport 53 -j DNAT --to-destination 192.168.1.10:53
+iptables -t nat -A PREROUTING -i br-lan -p tcp --dport 53 -j DNAT --to-destination 192.168.1.10:53
+iptables -A FORWARD -p tcp --dport 853 -j REJECT</code></pre>
+
+              <p class="tweak-note">Ajusta <code>192.168.1.10</code> a la IP de tu AdGuard Home y haz una copia de la configuración del router antes de tocar el firewall. Los anuncios insertados dentro del video de YouTube, Netflix, Prime Video o Disney+ no se pueden quitar desde el router: para YouTube usa SmartTube.</p>
+              <div class="guide-links">
+                <a href="https://adguard.com/adguard-home/overview.html" target="_blank" rel="noopener">AdGuard Home</a>
+                <a href="https://github.com/hagezi/dns-blocklists" target="_blank" rel="noopener">Listas HaGeZi</a>
+                <a href="https://oisd.nl" target="_blank" rel="noopener">OISD</a>
+                <a href="https://nextdns.io" target="_blank" rel="noopener">NextDNS</a>
+              </div>
+            </div>
+          </details>
+        </div>
+
       </div>
     </section>
 
@@ -638,6 +765,29 @@
           </div>
 
           <div class="airplay-hero-content">
+            <div class="airplay-metrics">
+              <div class="airplay-metric" data-state="unknown" id="metricAirPlayProfile">
+                <span class="metric-label">Perfil activo</span>
+                <strong id="airPlayProfileValue">—</strong>
+                <span class="metric-detail" id="airPlayProfileDetail">Comprobando…</span>
+              </div>
+              <div class="airplay-metric" data-state="unknown" id="metricAirPlayRunning">
+                <span class="metric-label">Receptor</span>
+                <strong id="airPlayRunningValue">—</strong>
+                <span class="metric-detail" id="airPlayRunningDetail">Comprobando…</span>
+              </div>
+              <div class="airplay-metric" data-state="unknown" id="metricAirPlayNetwork">
+                <span class="metric-label">Visible en la red</span>
+                <strong id="airPlayNetworkValue">—</strong>
+                <span class="metric-detail" id="airPlayNetworkDetail">Sin comprobar</span>
+              </div>
+              <div class="airplay-metric" data-state="unknown" id="metricAirPlayIp">
+                <span class="metric-label">IP de la TV</span>
+                <strong id="airPlayIpValue">—</strong>
+                <span class="metric-detail" id="airPlayIpDetail">—</span>
+              </div>
+            </div>
+
             <div class="airplay-status-card">
               <div class="airplay-status-icon">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -654,12 +804,27 @@
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="5 3 19 12 5 21 5 3"></polygon>
                   </svg>
-                  <span id="textAirScreenAction">Activar AirPlay en TV</span>
+                  <span id="textAirScreenAction">Activar Modo Apple Music</span>
                 </button>
               </div>
             </div>
-            <p class="hint-text">
-              Si AirScreen aún no está instalado en tu Android TV, este botón abrirá automáticamente la página oficial de instalación en Google Play Store directamente en tu TV.
+
+            <div class="airplay-action-row">
+              <button class="btn btn-outline" id="btnScanAirPlayNetwork">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                  <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                  <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                  <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                </svg>
+                <span>Comprobar red</span>
+              </button>
+              <span class="airplay-action-note" id="airPlayScanNote"></span>
+            </div>
+
+            <p class="hint-text" id="airPlayHint">
+              AirPlay usa la misma Wi-Fi para todo. Si tu iPhone no ve la TV en el Centro de Control, pulsa
+              «Comprobar red»: aquí se muestra si el receptor se está anunciando de verdad en tu red local.
             </p>
           </div>
         </div>

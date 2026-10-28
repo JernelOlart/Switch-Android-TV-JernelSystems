@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 const adb = require('./adbManager');
 const scanner = require('./networkScanner');
+const deviceHistory = require('./deviceHistory');
+const AdblockGuard = require('./adblockGuard');
 
 const args = process.argv.slice(2);
 const command = args[0] || 'help';
@@ -107,14 +109,62 @@ async function main() {
     case 'adblock': {
       const action = (args[1] || 'on').toLowerCase();
       const provider = args[2] || 'adguard';
+      const customHost = args[3] || '';
+      const guard = new AdblockGuard(adb, deviceHistory);
 
-      if (action === 'off') {
-        const res = await adb.setPrivateDns('auto');
-        console.log(`\x1b[33m[OK] DNS restaurado a modo automático (Sin filtro)\x1b[0m`);
-      } else {
-        const res = await adb.setPrivateDns(provider);
+      if (action === 'persist') {
+        if (provider === 'off') {
+          await guard.setDesired('auto');
+          const res = await adb.removeDnsBootScript();
+          if (res.success) {
+            console.log(`\x1b[32m[OK] ${res.message}\x1b[0m`);
+          } else {
+            console.error(`\x1b[31m[ERROR] ${res.message}\x1b[0m`);
+          }
+          break;
+        }
+
+        let host = null;
+        const knownProviders = ['adguard', 'adguard-family', 'mullvad', 'quad9', 'custom'];
+
+        if (knownProviders.includes(provider)) {
+          const applied = await adb.setPrivateDns(provider, customHost);
+          if (!applied.success) {
+            console.error(`\x1b[31m[ERROR] ${applied.message}\x1b[0m`);
+            break;
+          }
+          host = applied.host;
+          await guard.setDesired(provider, customHost);
+        } else {
+          const dns = await adb.getPrivateDns();
+          host = dns && dns.mode === 'hostname' ? dns.specifier : '';
+          if (host) await guard.setDesired('custom', host);
+        }
+
+        if (!host) {
+          console.error('\x1b[31m[ERROR] No hay un DNS anti-anuncios activo. Aplica uno primero: node cli.js adblock on adguard\x1b[0m');
+          break;
+        }
+
+        const res = await adb.installDnsBootScript(host);
         if (res.success) {
           console.log(`\x1b[32m[OK] ${res.message}\x1b[0m`);
+        } else {
+          console.error(`\x1b[31m[ERROR] ${res.message}\x1b[0m`);
+        }
+        break;
+      }
+
+      if (action === 'off') {
+        await adb.setPrivateDns('auto');
+        await guard.setDesired('auto');
+        console.log(`\x1b[33m[OK] DNS restaurado a modo automático (Sin filtro)\x1b[0m`);
+      } else {
+        const res = await adb.setPrivateDns(provider, customHost);
+        if (res.success) {
+          await guard.setDesired(provider, customHost);
+          console.log(`\x1b[32m[OK] ${res.message}\x1b[0m`);
+          console.log('\x1b[36m[*] El servidor web mantiene este DNS aplicado tras reinicios mientras esté abierto.\x1b[0m');
         } else {
           console.error(`\x1b[31m[ERROR] Error al configurar DNS: ${res.message}\x1b[0m`);
         }
@@ -188,6 +238,8 @@ async function main() {
   node cli.js scan                 -> Escanear la subred Wi-Fi
   node cli.js connect <ip>         -> Conectar con la Android TV por ADB (puerto 5555)
   node cli.js adblock [on|off]     -> Activar/Desactivar AdGuard DNS en todo el sistema
+  node cli.js adblock on custom <host> -> DNS DoT propio (ej: abc123.dns.nextdns.io)
+  node cli.js adblock persist [off] -> Script de arranque del DNS (requiere root + Magisk)
   node cli.js launcher-ads [on|off] -> Desactivar/Reactivar recomendaciones de anuncios del Home
   node cli.js reboot [reboot|recovery] -> Reiniciar TV o arrancar en Recovery
   node cli.js airplay              -> Iniciar o instalar receptor AirPlay para iPhone

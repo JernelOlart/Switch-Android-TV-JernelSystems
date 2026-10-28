@@ -2,17 +2,34 @@ const express = require('express');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const multer = require('multer');
+const { spawn } = require('child_process');
 const { WebSocketServer } = require('ws');
 
 const adbManager = require('./adbManager');
 const networkScanner = require('./networkScanner');
+const deviceHistory = require('./deviceHistory');
+const airplayDiscovery = require('./airplayDiscovery');
+const AdblockGuard = require('./adblockGuard');
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
+// ws re-emite los errores del servidor HTTP; sin este listener Node aborta
+// con "Unhandled 'error' event" durante los reintentos de escucha.
+wss.on('error', err => {
+  if (err && err.code !== 'EADDRINUSE') {
+    console.error('Error del canal WebSocket:', err.message);
+  }
+});
+
 const PORT = process.env.PORT || 4200;
+
+// Identidad del proceso actual: permite al panel distinguir un reinicio real
+// de una respuesta del servidor anterior que aún no ha terminado de cerrar.
+const BOOT_ID = crypto.randomUUID();
 
 // Configuración de subida para APKs
 const uploadDir = path.join(__dirname, 'uploads');
@@ -52,6 +69,19 @@ networkScanner.on('device_found', data => broadcast('device_found', data));
 networkScanner.on('scan_completed', data => broadcast('scan_completed', data));
 networkScanner.on('scan_aborted', () => broadcast('scan_aborted', {}));
 
+// Vigilante de DNS: reaplica el anti-anuncios si el equipo lo revierte tras un
+// reinicio o cambio de red. Persiste su estado en data/adblock-config.json.
+const adblockGuard = new AdblockGuard(adbManager, deviceHistory, {
+  onEvent: (type, payload) => {
+    if (type === 'adblock_guard_reapplied') {
+      console.log(`[AdBlock] DNS reaplicado automáticamente: ${payload.host}`);
+    } else if (type === 'adblock_guard_reconnected') {
+      console.log(`[AdBlock] TV reconectada para mantener el DNS: ${payload.target}`);
+    }
+    broadcast(type, payload);
+  }
+});
+
 // --- Rutas de la API ---
 
 // 1. Estado General
@@ -64,7 +94,8 @@ app.get('/api/status', async (req, res) => {
     deviceInfo: adbManager.deviceInfo,
     attachedAdbDevices: devices,
     networks,
-    isScanning: networkScanner.isScanning
+    isScanning: networkScanner.isScanning,
+    bootId: BOOT_ID
   });
 });
 
@@ -109,6 +140,7 @@ app.post('/api/connect', async (req, res) => {
   const result = await adbManager.connect(ip.trim(), port);
   if (result.success) {
     const info = await adbManager.getDeviceInfo();
+    deviceHistory.add({ ip: ip.trim(), port, target: result.target, info });
     broadcast('device_connected', { target: result.target, info });
   }
   res.json(result);
@@ -287,8 +319,15 @@ app.post('/api/device/shell', async (req, res) => {
 app.get('/api/device/adblock/status', async (req, res) => {
   try {
     const dns = await adbManager.getPrivateDns();
-    const launcherAdsDisabled = await adbManager.getLauncherAdsStatus();
-    res.json({ dns, launcherAdsDisabled });
+    const launcherAds = await adbManager.getLauncherAdsInfo();
+    const persistence = await adbManager.getDnsPersistenceStatus();
+    res.json({
+      dns,
+      launcherAdsDisabled: launcherAds ? launcherAds.disabled : false,
+      launcherAds,
+      persistence,
+      guard: adblockGuard.status()
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -299,13 +338,97 @@ app.post('/api/device/adblock/dns', async (req, res) => {
   const { provider, customHost } = req.body;
   if (!provider) return res.status(400).json({ error: 'Proveedor de DNS requerido' });
   const result = await adbManager.setPrivateDns(provider, customHost);
+
+  // Todo DNS con filtro queda vigilado: si el equipo lo revierte al reiniciar,
+  // el servidor lo vuelve a aplicar al reconectar.
+  if (result.success) {
+    const watch = await adblockGuard.setDesired(provider, customHost);
+    result.guard = watch.success ? adblockGuard.status() : { enabled: false, error: watch.message };
+
+    // Con root/Magisk, el script de arranque se actualiza al nuevo host.
+    if (watch.success && watch.host) {
+      const root = await adbManager.getRootStatus();
+      if (root.canPersistBoot) {
+        result.bootScript = await adbManager.installDnsBootScript(watch.host);
+      }
+    }
+  }
+
   res.json(result);
+});
+
+// 22b. Ad-Block: Persistencia tras reinicios (script de arranque + vigilancia)
+app.post('/api/device/adblock/persist', async (req, res) => {
+  const { enabled = true, installBootScript = true, provider, customHost } = req.body || {};
+
+  try {
+    if (provider) {
+      const dnsResult = await adbManager.setPrivateDns(provider, customHost);
+      if (!dnsResult.success) return res.json({ success: false, message: dnsResult.message, dns: dnsResult });
+    }
+
+    if (!enabled) {
+      const watch = adblockGuard.disable('Vigilancia de DNS desactivada');
+      const boot = installBootScript ? await adbManager.removeDnsBootScript() : null;
+      const bootFailed = !!(boot && boot.supported && !boot.success);
+      return res.json({
+        success: true,
+        enabled: false,
+        message: bootFailed
+          ? `Vigilancia desactivada, pero ${boot.message}`
+          : (boot && boot.supported && boot.success
+            ? 'Vigilancia y script de arranque desactivados'
+            : watch.message),
+        guard: adblockGuard.status(),
+        bootScript: boot
+      });
+    }
+
+    const watch = provider
+      ? await adblockGuard.setDesired(provider, customHost)
+      : await adblockGuard.setEnabled(true);
+
+    if (!watch.success) {
+      return res.json({
+        success: false,
+        message: watch.message,
+        guard: adblockGuard.status()
+      });
+    }
+
+    let bootScript = null;
+    if (installBootScript) {
+      const host = watch.host || adblockGuard.getState().host;
+      bootScript = await adbManager.installDnsBootScript(host);
+    }
+
+    const persistence = await adbManager.getDnsPersistenceStatus();
+
+    res.json({
+      success: true,
+      enabled: true,
+      message: bootScript && bootScript.success
+        ? bootScript.message
+        : `Vigilancia activada: el servidor reaplicará el DNS ${watch.host || ''} si la TV lo pierde.`,
+      bootScript,
+      persistence,
+      guard: adblockGuard.status()
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // 23. Ad-Block: Bloquear Recomendaciones y Anuncios del Home
 app.post('/api/device/adblock/launcher-ads', async (req, res) => {
   const { disable } = req.body;
   const result = await adbManager.toggleLauncherAds(disable !== false);
+  res.json(result);
+});
+
+// 23b. Abrir los Ajustes del sistema en la pantalla de la TV
+app.post('/api/device/settings/open', async (req, res) => {
+  const result = await adbManager.openTvSettings();
   res.json(result);
 });
 
@@ -327,14 +450,47 @@ app.post('/api/device/apps/install-curated', async (req, res) => {
 
 // 26. AirPlay / AirScreen: Comprobar Estado
 app.get('/api/device/airplay/status', async (req, res) => {
-  const result = await adbManager.checkAirPlayStatus();
-  res.json(result);
+  try {
+    const result = await adbManager.checkAirPlayStatus();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, installed: false, message: err.message });
+  }
 });
 
 // 27. AirPlay / AirScreen: Iniciar o Abrir Tienda
 app.post('/api/device/airplay/setup', async (req, res) => {
-  const result = await adbManager.launchOrInstallAirScreen();
-  res.json(result);
+  try {
+    const result = await adbManager.launchOrInstallAirScreen();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// 27b. AirPlay: ¿La TV se anuncia de verdad en la red local?
+app.get('/api/network/airplay/scan', async (req, res) => {
+  try {
+    const discovery = await airplayDiscovery.discoverReceivers({ timeoutMs: 3000 });
+    const info = await adbManager.getAirPlayInfo().catch(() => null);
+    const model = adbManager.deviceInfo && adbManager.deviceInfo.model;
+    const marker = (model || '').toLowerCase();
+
+    const tvReceiver = discovery.receivers.find(receiver => {
+      const name = receiver.name.toLowerCase();
+      return name.includes('airscreen') || name.startsWith('as-') || (marker && name.includes(marker));
+    }) || null;
+
+    res.json({
+      ...discovery,
+      tvIp: info ? info.tvIp : null,
+      deviceModel: model || null,
+      tvVisible: !!tvReceiver,
+      tvReceiver
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, receivers: [], message: err.message });
+  }
 });
 
 // 28. Enviar y Abrir Enlace / URL en la TV
@@ -352,6 +508,68 @@ app.post('/api/device/tweaks/reboot', async (req, res) => {
   res.json(result);
 });
 
+// 30. Historial de Dispositivos Conectados
+app.get('/api/devices/history', (req, res) => {
+  res.json({ devices: deviceHistory.list() });
+});
+
+app.post('/api/devices/history/remove', (req, res) => {
+  const { ip, port, key } = req.body || {};
+  const removed = deviceHistory.remove({ ip, port, key });
+  res.json({ success: removed, devices: deviceHistory.list() });
+});
+
+// 31. Reinicio del Servidor (auto-relanzamiento en segundo plano)
+let isRestarting = false;
+
+app.post('/api/server/restart', (req, res) => {
+  if (isRestarting) {
+    return res.status(409).json({ error: 'Ya hay un reinicio en curso' });
+  }
+  isRestarting = true;
+
+  try {
+    const dataDir = path.join(__dirname, 'data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+
+    // El proceso hijo no comparte consola con el actual: su salida va al log
+    const logPath = path.join(dataDir, 'server.log');
+    const logFd = fs.openSync(logPath, 'a');
+    let child;
+    try {
+      child = spawn(process.execPath, [path.join(__dirname, 'server.js')], {
+        cwd: __dirname,
+        detached: true,
+        stdio: ['ignore', logFd, logFd],
+        env: { ...process.env, NEOSWITCH_RESTART: '1', PORT: String(PORT) }
+      });
+      child.unref();
+    } finally {
+      fs.closeSync(logFd);
+    }
+
+    res.json({
+      success: true,
+      pid: child.pid,
+      message: 'Reiniciando el servidor...'
+    });
+
+    // Evita que dos procesos reapliquen el DNS al mismo tiempo
+    adblockGuard.stop();
+
+    // Dar tiempo a que la respuesta HTTP salga antes de cerrar el proceso actual
+    setTimeout(() => {
+      server.close(() => process.exit(0));
+      setTimeout(() => process.exit(0), 1500).unref();
+    }, 300);
+  } catch (err) {
+    isRestarting = false;
+    res.status(500).json({ error: `No se pudo reiniciar el servidor: ${err.message}` });
+  }
+});
+
 // Middleware de manejo de errores (debe registrarse tras las rutas)
 app.use((err, req, res, next) => {
   console.error('Error no manejado en servidor:', err);
@@ -361,7 +579,7 @@ app.use((err, req, res, next) => {
 });
 
 // Iniciar Servidor
-server.listen(PORT, () => {
+function printBanner() {
   console.log(`=======================================================`);
   console.log(`  NEOSWITCH TV — ANDROID TV STUDIO v1.2`);
   console.log(`=======================================================`);
@@ -373,4 +591,30 @@ server.listen(PORT, () => {
   console.log(`  Servidor activo en:  http://localhost:${PORT}`);
   console.log(`  ADB Path detectado:  ${adbManager.adbPath}`);
   console.log(`=======================================================`);
-});
+}
+
+const MAX_LISTEN_RETRIES = 20;
+
+function startServer(attempt = 0) {
+  const onError = (err) => {
+    server.removeListener('error', onError);
+
+    // Tras un reinicio, el proceso anterior puede tardar en liberar el puerto
+    if (err.code === 'EADDRINUSE' && process.env.NEOSWITCH_RESTART === '1' && attempt < MAX_LISTEN_RETRIES) {
+      setTimeout(() => startServer(attempt + 1), 400);
+      return;
+    }
+
+    console.error(`No se pudo iniciar el servidor en el puerto ${PORT}: ${err.message}`);
+    process.exit(1);
+  };
+
+  server.once('error', onError);
+  server.listen(PORT, () => {
+    server.removeListener('error', onError);
+    printBanner();
+    adblockGuard.start();
+  });
+}
+
+startServer();
